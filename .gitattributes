@@ -1,0 +1,20 @@
+# Examples can be found in Linguist's README file.
+# https://github.com/github/linguist#using-gitattributes
+# 
+# With the following attribute, Linguist detects all .rb files as being Java files.
+# *.rb linguist-language=Java
+# 
+# With the following attribute, Linguist detects files in the special-vendored-path directory (notice the 
+# mandatory trailing *) as # vendored and excludes them from statistics.
+# special-vendored-path/* linguist-vendored
+# 
+# Without the following attribute, Linguist would detect the file docs/formatter.rb as documentation and
+# exclude it from statistics.
+# docs/formatter.rb linguist-documentation=false
+# 
+# With the following attribute, Linguist counts SQL files in statistics. Without this attribute, only programming
+# and markup # languages are counted in statistics.
+# *.sql linguist-detectable=true
+
+*.cpp linguist-language=C
+lua-5.3.5/* linguist-vendored
