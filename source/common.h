@@ -26,22 +26,15 @@ typedef enum
 
 typedef enum
 {
-    LOG_OFF = 0,
-    LOG_FATAL,
-    LOG_ERROR,
+    LOG_INFO,
     LOG_WARN,
-    LOG_INFO
+    LOG_ERROR
 } loglvl_t;
 
 
 /// Initialize the module.
 /// @return Status.
 status_t common_init(void);
-
-/// Set the log level threshhold.
-/// @param level See loglvl_t
-/// @return Status.
-status_t common_setLogLevel(loglvl_t level);
 
 /// Maybe log some information. TODO could be fancier with macros to capture FILE/LINE etc.
 /// @param level See common_setLogLevel().
@@ -52,14 +45,10 @@ status_t common_log(loglvl_t level, const char* format, ...);
 /// @return The msec.
 int common_getMsec(void);
 
-
-///////////////// macros TODO in pp? //////////////////////
-
+/// Helper macro.
 #define SPX if(stat == 0) stat =
-#define SP if(stat == 0)
-#define SF if(stas != 0)
 
-
+/// Helper macro.
 #define CHECKED_FUNC(_stat, _func, ...) \
 { \
     _stat = _func(__VA_ARGS__); \

@@ -6,15 +6,29 @@
 
 //---------------- Private --------------------------//
 
-//---------------- Lua functions --------------------//
+//---------------- Lua Functions in C ---------------//
+
+// TODO template/generator?
 
 /// Write to the log.
-/// nil log(level, text)
+/// nil log(number level, string text)
 static int p_luafunc_log(lua_State* L);
 
 /// Number of msec since the start of the application.
 /// number msec()
 static int p_luafunc_msec(lua_State* L);
+
+/// Set a digital output.
+/// nil digout(number pin, bool state)
+static int p_luafunc_digout(lua_State* L);
+
+/// Get a digital input (or output).
+/// bool digin(number pin)
+static int p_luafunc_digin(lua_State* L);
+
+/// Trigger a digital interrupt.
+/// nil interrupt(number pin)
+static int p_luafunc_interrupt(lua_State* L);
 
 
 //---------------- Private Utils --------------------//
@@ -77,6 +91,9 @@ status_t xlat_loadLibs(lua_State* L)
     {
         { "log",  p_luafunc_log },
         { "msec", p_luafunc_msec },
+        { "digout", p_luafunc_digout },
+        { "digin", p_luafunc_digin },
+        { "interrupt", p_luafunc_interrupt },
         { NULL, NULL }
     };
 
@@ -85,9 +102,7 @@ status_t xlat_loadLibs(lua_State* L)
     return stat;
 }
 
-
-//---------------- Private Implementation ----------------//
-
+//---------------- Lua Funcs Implementation ----------------//
 
 //--------------------------------------------------------//
 int p_luafunc_log(lua_State* L)
@@ -106,7 +121,6 @@ int p_luafunc_log(lua_State* L)
     {
         case 0: ll = LOG_INFO; break;
         case 1: ll = LOG_WARN; break;
-        case 2: ll = LOG_ERROR; break;
         default: ll = LOG_ERROR; break;
     }
 
@@ -119,7 +133,6 @@ int p_luafunc_log(lua_State* L)
     return 0; // number of results
 }
 
-
 //--------------------------------------------------------//
 int p_luafunc_msec(lua_State* L)
 {
@@ -130,6 +143,40 @@ int p_luafunc_msec(lua_State* L)
     return 1; // number of results
 }
 
+//--------------------------------------------------------//
+int p_luafunc_digout(lua_State* L)
+{
+    (void)L;
+/// nil digout(number pin, bool state)
+
+    // Push return values.
+    return 0; // number of results
+}
+
+//--------------------------------------------------------//
+int p_luafunc_digin(lua_State* L)
+{
+    (void)L;
+/// bool digin(number pin)
+
+    // Push return values.
+//    lua_pushinteger(L, msec);
+    return 1; // number of results
+}
+
+//--------------------------------------------------------//
+int p_luafunc_interrupt(lua_State* L)
+{
+    (void)L;
+
+/// nil interrupt(number pin)
+
+    // Push return values.
+    return 0; // number of results
+}
+
+
+//---------------- Private Implementation ----------------//
 
 //--------------------------------------------------------//
 void p_luaError(lua_State* L, const char* format, ...)

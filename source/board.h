@@ -18,6 +18,8 @@
 #define DIG_OUT_3 6
 
 
+//---------------- Digital IO Functions -----------------//
+
 /// Type: Function pointer for registration of digital input change callbacks.
 /// @param which The digital input whose state has changed.
 /// @param value The new state of the input.
@@ -26,7 +28,7 @@ typedef void (*fpDigInterrupt)(unsigned int which, bool value);
 /// Type: Function pointer for handling of timer ticks.
 typedef void (*fpTimerInterrupt)(void);
 
-/// Initialize the module.
+/// Initialize the component.
 /// @return Status.
 status_t board_init(void);
 
@@ -40,7 +42,7 @@ status_t board_enbInterrupts(bool enb);
 /// @return Status.
 status_t board_log(const char* txt);
 
-/// Clean up module resources.
+/// Clean up component resources.
 /// @return Status.
 status_t board_destroy(void);
 

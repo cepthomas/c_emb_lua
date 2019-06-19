@@ -11,9 +11,6 @@
 /// When the app was started.
 static uint64_t p_startTime;
 
-/// Current logging level.
-static loglvl_t p_logLevel = LOG_ERROR;
-
 
 //---------------- Public Implementation -------------//
 
@@ -29,28 +26,24 @@ status_t common_init(void)
 }
 
 //--------------------------------------------------------//
-status_t common_setLogLevel(loglvl_t level)
-{
-    status_t stat = STATUS_OK;
-    p_logLevel = level;
-    return stat;
-}
-
-//--------------------------------------------------------//
 status_t common_log(loglvl_t level, const char* format, ...)
 {
     status_t stat = STATUS_OK;
   
     static char p_logBuff[100];
 
-    if(p_logLevel > 0 && level <= p_logLevel)
+    switch(level)
     {
-        va_list args;
-        va_start(args, format);
-        vsnprintf(p_logBuff, sizeof(p_logBuff), format, args);
-        board_log(p_logBuff);
+    case LOG_INFO:  strcpy(p_logBuff, "INF "); break;
+    case LOG_WARN:  strcpy(p_logBuff, "WRN "); break;
+    case LOG_ERROR: strcpy(p_logBuff, "ERR "); break;
     }
-  
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(p_logBuff + 4, sizeof(p_logBuff), format, args);
+    board_log(p_logBuff);
+
     return stat;
 }
 
