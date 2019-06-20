@@ -2,12 +2,19 @@
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
+#include <conio.h>
+
+//#ifdef WIN32
+//#include <windows.h>
+//#endif
 
 #include "board.h"
+#include "stringx.h"
 
 
+//---------------- Private ------------------------------//
 
-//---------------- Private --------------------------//
+#define SER_BUFF_LEN 128
 
 /// Registered client callback.
 static fpDigInterrupt p_digInterrupt;
@@ -18,21 +25,26 @@ static fpTimerInterrupt p_timerInterrupt;
 /// Interrupts enabled?
 static bool p_enbInterrupts;
 
-//#define BUFF_LEN 128
-
-/// Current digital pins. Index is pin num not enum.
-static bool p_digPins[NUM_DIG_PINS];
-
 /// Main timer period in msec.
 static unsigned int p_timerPeriod;
 
-//---------------- Public Implementation -------------//
+//---------------- Simulator Stuff -----------------------//
 
+/// Serial receive buffer. In this simulator we will used stdio for serial IO.
+static char p_rxBufSim[SER_BUFF_LEN];
+
+/// Simulated digital pins.
+static bool p_digPinsSim[NUM_DIG_PINS];
+
+
+//---------------- Public Implementation -----------------//
 
 //--------------------------------------------------------//
 status_t board_init(void)
 {
     status_t stat = STATUS_OK;
+
+    memset(p_rxBufSim, 0, SER_BUFF_LEN);
 
     p_enbInterrupts = false;
     p_digInterrupt = NULL;
@@ -41,7 +53,7 @@ status_t board_init(void)
 
     for(int i = 0; i < NUM_DIG_PINS; i++)
     {
-        p_digPins[i] = false;
+        p_digPinsSim[i] = false;
     }
 
     return stat;
@@ -70,7 +82,7 @@ status_t board_log(const char* txt)
 {
     status_t stat = STATUS_OK;
 
-    printf("%s", txt);
+    board_serWrite(0, txt);
 
     return stat;
 }
@@ -86,7 +98,7 @@ status_t board_regDigInterrupt(fpDigInterrupt fp)
 }
 
 //--------------------------------------------------------//
-status_t board_regTimerInterrupt(unsigned int when, fpTimerInterrupt fp) //TODO probably need some fake timer for demo purposes.
+status_t board_regTimerInterrupt(unsigned int when, fpTimerInterrupt fp) //TODOX probably need some fake timer for demo purposes.
 {
     (void)when;
 
@@ -140,90 +152,56 @@ status_t board_serOpen(unsigned int channel)
 }
 
 //--------------------------------------------------------//
-status_t board_serReadLine(unsigned int channel, char* buff, int num)
+status_t board_serReadLine(unsigned int channel, char* buff, unsigned int num)
 {
     (void)channel;
-    (void)buff;
-    (void)num;
 
     status_t stat = STATUS_OK;
 
-    // strcpy(buff, p_nextSerRead);
-    // p_nextSerRead[0] = 0;
+    // Default.
+    buff[0] = 0;
+
+    char c = (char)_getch();
+
+    if(c != 0)
+    {
+        switch(c)
+        {
+            case '\n':
+                // Ignore.
+                break;
+
+            case '\r':
+                // Echo return.
+                board_serWrite(0, "\r\n");
+                // Copy to client buff.
+                strncpy(buff, p_rxBufSim, num);
+                // Clear.
+                memset(p_rxBufSim, 0, SER_BUFF_LEN);
+                // Echo prompt.
+                board_serWrite(0, "\r\n>");
+                break;
+
+            default:
+                // Echo char.
+                putchar(c);
+                // Save it.
+                p_rxBufSim[strlen(p_rxBufSim)] = c;
+                break;
+        }
+    }
 
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_serWriteLine(unsigned int channel, char* buff)
+status_t board_serWrite(unsigned int channel, const char* buff)
 {
     (void)channel;
-    (void)buff;
 
     status_t stat = STATUS_OK;
-    
-    // strncpy(p_lastSerWrite, buff, BUFF_LEN);
-    // p_lastSerWrite[0] = 0;
+
+    printf("%s", buff);
 
     return stat;    
 }
-
-
-// //---------------- Simulator Support ---------------------//
-
-
-// //--------------------------------------------------------//
-// void hal_sim_clearDigPins()
-// {
-//     for(int i = 0; i < NUM_DIG_PINS; i++)
-//     {
-//         p_digPins[i] = false;
-//     }
-// }
-
-// //--------------------------------------------------------//
-// void hal_sim_injectDigInput(unsigned int pin, bool state)
-// {
-//     p_digPins[pin] = state;
-
-//     if(p_digInterrupt != NULL)
-//     {
-//         p_digInterrupt(pin, state);
-//     }
-// }
-
-// //--------------------------------------------------------//
-// bool hal_sim_getDigPin(unsigned int pin)
-// {
-//     return p_digPins[pin];
-// }
-
-// //--------------------------------------------------------//
-// const char* hal_sim_getLastSerWrite()
-// {
-//     return p_lastSerWrite;
-// }
-
-// //--------------------------------------------------------//
-// const char* hal_sim_getLastLogWrite()
-// {
-//     return p_lastLogWrite;
-// }
-
-// //--------------------------------------------------------//
-// void hal_sim_setNextSerRead(const char* s)
-// {
-//     strncpy(p_nextSerRead, s, BUFF_LEN);
-// }
-
-// //--------------------------------------------------------//
-// const char* hal_sim_getNextSerRead(void)
-// {
-//     return p_nextSerRead;
-// }
-
-// //--------------------------------------------------------//
-// void hal_sim_timerTick()
-// {
-//     p_timerInterrupt();   
-// }

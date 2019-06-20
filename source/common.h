@@ -45,17 +45,4 @@ status_t common_log(loglvl_t level, const char* format, ...);
 /// @return The msec.
 int common_getMsec(void);
 
-/// Helper macro.
-#define SPX if(stat == 0) stat =
-
-/// Helper macro.
-#define CHECKED_FUNC(_stat, _func, ...) \
-{ \
-    _stat = _func(__VA_ARGS__); \
-    if(_stat != STATUS_OK) \
-    { \
-        common_log(0, "%s(%d) %s", __FILE__, __LINE__, #_func); \
-    } \
-}
-
 #endif // COMMON_H

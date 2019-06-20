@@ -4,7 +4,7 @@
 
 #include "common.h"
 
-/// @file Simulated hardware board. Yours would be completely different.
+/// @file Interface to the hardware board. Ours is simulated, yours would be completely different.
 
 
 /// Physical IO.
@@ -74,18 +74,18 @@ status_t board_readDig(unsigned int pin, bool* value);
 /// @return Status.
 status_t board_serOpen(unsigned int channel);
 
-/// Read from a serial channel.
+/// Read a line from a serial channel. This does not block. Buffers chars until EOL.
 /// @param channel Specific channel.
 /// @param buff Data buffer. Will be a zero-terminated string.
 /// @param num Length of buff.
 /// @return Status.
-status_t board_serReadLine(unsigned int channel, char* buff, int num);
+status_t board_serReadLine(unsigned int channel, char* buff, unsigned int num);
 
 /// Write to a serial channel.
 /// @param channel Specific channel.
 /// @param buff What to send as a zero-terminated string.
 /// @return Status.
-status_t board_serWriteLine(unsigned int channel, char* buff);
+status_t board_serWrite(unsigned int channel, const char* buff);
 
 
 //---------------- Timer Functions -----------------//

@@ -10,6 +10,13 @@ SRC_PATH = "./source"
 CBOT_PATH = "../c-bag-of-tricks/source"
 LUA_PATH = "./lua-5.3.5/src"
 
+# Copy lua scripts.
+copydata.commands = $(COPY_DIR) $$PWD/source/*.lua $$OUT_PWD
+first.depends = $(first) copydata
+export(first.depends)
+export(copydata.commands)
+QMAKE_EXTRA_TARGETS += first copydata
+
 
 INCLUDEPATH += \
     $$SRC_PATH \
