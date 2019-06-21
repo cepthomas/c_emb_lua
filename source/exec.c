@@ -202,7 +202,6 @@ status_t p_processCommand(stringx_t* sin)
     else
     {
         common_log(LOG_WARN, "Invalid cmd:%s", stringx_content(sin));
-        stat = STATUS_WARN;
     }
 
     return stat;
@@ -218,23 +217,28 @@ status_t p_startScript()
     // Set up a second Lua thread so we can background execute the script.
     p_LScript = lua_newthread(p_LMain);
 
-    CHECKED_FUNC(stat, demolib_loadLibs, p_LScript);
-
-//    char* dir = getcwd(NULL, 0);
-//    free(dir);
+    // Load libraries.
+    luaL_openlibs(p_LScript);
+    demolib_preload(p_LScript);
 
     // Load the script/file we are going to run. Hard coded.
     int result = luaL_loadfile(p_LScript, "demoapp.lua");
+//    The return values of lua_load are:
+//    LUA_OK: no errors;
+//    LUA_ERRSYNTAX: syntax error during precompilation;
+//    LUA_ERRMEM: memory allocation (out-of-memory) error;
+//    LUA_ERRGCMM: error while running a __gc metamethod.
 
-    if (result == 0)
+    if (result == LUA_OK)
     {
         // Start the script running.
-        stat = demolib_loadContext(p_LScript, "Hey diddle diddle", 90909);
+        demolib_loadContext(p_LScript, "Hey diddle diddle", 90909);
         int lstat = lua_resume(p_LScript, 0, 0);
 
         // A quick test.
         float f;
-        stat = demolib_luafunc_someCalc(p_LScript, 11, 22, &f);
+        demolib_luafunc_someCalc(p_LScript, 11, 22, &f);
+        common_log(LOG_INFO, "demolib_luafunc_someCalc():%f", (float)f);
 
         switch(lstat)
         {
@@ -278,12 +282,10 @@ status_t p_processExecError()
 {
     status_t status = STATUS_OK;
 
-    // The Lua error string may be of one of these two forms:
-    // script.lua:42: blabla
-    // func:28: blabla
-
     p_scriptRunning = false;
-    common_log(LOG_ERROR, lua_tostring(p_LScript, -1));//TODO in demolib?
+
+    // The error string from Lua.
+    common_log(LOG_ERROR, lua_tostring(p_LScript, -1));
 
     return status;
 }

@@ -40,7 +40,8 @@ HEADERS += \
     $$SRC_PATH/demolib.h
 
 
-### Lua ### TODO make this a lib?
+### Lua ###
+# Could be a lib if so inclined.
 SOURCES += \
     $$LUA_PATH/lapi.c \
     $$LUA_PATH/lauxlib.c \
@@ -104,4 +105,3 @@ HEADERS += \
     $$LUA_PATH/lundump.h \
     $$LUA_PATH/lvm.h \
     $$LUA_PATH/lzio.h
-

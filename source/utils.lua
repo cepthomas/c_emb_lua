@@ -2,7 +2,7 @@
 Lua utilities.
 --]]
 
---local demolib = require("demolib")
+local demolib = require "demolib"
 
 -- Create the namespace/module.
 local M = {}
@@ -16,15 +16,13 @@ function M.delay_timer(msec)
   local timeout = msec
 
   -- Grab the start time.
-  local start = msec()
-  --local start = demolib.msec()
+  local start = demolib.msec()
   
   -- The accessor function.
   local status = 
     function()
       -- Are we there yet?
-      return (msec() - start) > timeout
-      --return (demolib.msec() - start) > timeout
+      return (demolib.msec() - start) > timeout
     end  
       
   return { status = status }      

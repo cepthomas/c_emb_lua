@@ -8,7 +8,7 @@
 
 //---------------- Lua Functions in C ---------------//
 
-// TODO template/generator for wrappers. also better error checking.
+// TODO template/generator for wrappers. also better error checking throughout.
 
 /// Write to the log.
 /// nil log(number level, string text)
@@ -33,78 +33,68 @@ static int p_luafunc_interrupt(lua_State* L);
 
 //---------------- Private Utils --------------------//
 
-/// @brief Report a bad thing detected by this component.
+/// Report a bad thing detected by this component.
 /// @param[in] L Lua state.
 /// @param[in] format Standard string stuff.
-/// @return Status.
 void p_luaError(lua_State* L, const char* format, ...);
 
-/// @brief Utility to get an int arg off the Lua stack.
+/// Utility to get an int arg off the Lua stack.
 /// @param[in] L Lua state.
 /// @param[in] index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-/// @return Status.
-status_t p_getArgInt(lua_State* L, int index, int* ret);
+void p_getArgInt(lua_State* L, int index, int* ret);
 
-/// @brief Utility to get a double arg off the Lua stack.
+/// Utility to get a double arg off the Lua stack.
 /// @param[in] L Lua state.
 /// @param[in] index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-/// @return Status.
-status_t p_getArgDbl(lua_State* L, int index, double* ret);
+void p_getArgDbl(lua_State* L, int index, double* ret);
 
-/// @brief Utility to get a boolean arg off the Lua stack.
+/// Utility to get a boolean arg off the Lua stack.
 /// @param[in] L Lua state.
 /// @param[in] index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-/// @return Status.
-status_t p_getArgBool(lua_State* L, int index, bool* ret);
+void p_getArgBool(lua_State* L, int index, bool* ret);
 
-/// @brief Utility to get a string arg off the Lua stack.
+/// Utility to get a string arg off the Lua stack.
 /// @param[in] L Lua state.
 /// @param[in] index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-/// @return Status.
-status_t p_getArgStr(lua_State* L, int index, stringx_t* ret);
+void p_getArgStr(lua_State* L, int index, stringx_t* ret);
+
+/// Called by system to actually load the lib.
+/// @param[in] L Lua state.
+/// @return Status = 1 if ok.
+int p_open_demolib (lua_State *L);
+
+/// List of functions in the module.
+static const luaL_Reg demolib[] =
+{
+    { "log",  p_luafunc_log },
+    { "msec", p_luafunc_msec },
+    { "digout", p_luafunc_digout },
+    { "digin", p_luafunc_digin },
+    { "interrupt", p_luafunc_interrupt },
+    { NULL, NULL }
+};
 
 
 //---------------- Public Implementation -------------//
 
 //--------------------------------------------------------//
-status_t demolib_loadLibs(lua_State* L)
+void demolib_preload(lua_State* L)
 {
-    status_t stat = STATUS_OK;
 
-    // Load libraries.
-    luaL_openlibs(L);
-
-    // Register our C <-> Lua functions.
-    common_log(LOG_INFO, "Initing Lua functions: demolib");
-
-    // List of functions in the module.
-    static const luaL_Reg demolib[] =
-    {
-        { "log",  p_luafunc_log },
-        { "msec", p_luafunc_msec },
-        { "digout", p_luafunc_digout },
-        { "digin", p_luafunc_digin },
-        { "interrupt", p_luafunc_interrupt },
-        { NULL, NULL }
-    };
-
-    luaL_newlib(L, demolib);//TODO this goes into global space? old way was namespaced.
-
-    return stat;
+    common_log(LOG_INFO, "demolib_preload()");
+    luaL_requiref(L, "demolib", p_open_demolib, 1);
 }
 
-//---------------- Lua Funcs C -> Lua --------------------//
-
 //--------------------------------------------------------//
-status_t demolib_loadContext(lua_State* L, const char* s, int i)
+void demolib_loadContext(lua_State* L, const char* s, int i)
 {
-    status_t stat = STATUS_OK;
+    common_log(LOG_INFO, "demolib_loadContext()");
 
-    // Pass the context vals to the Lua world in a table named "script_context".
+    ///// Pass the context vals to the Lua world in a table named "script_context".
     lua_newtable(L);
 
     lua_pushstring(L, "script_string");
@@ -116,72 +106,65 @@ status_t demolib_loadContext(lua_State* L, const char* s, int i)
     lua_settable(L, -3);
 
     lua_setglobal(L, "script_context");
-
-    return stat;
 }
 
+
+//---------------- Lua Funcs C -> Lua --------------------//
+
 //--------------------------------------------------------//
-status_t demolib_luafunc_someCalc(lua_State* L, int x, int y, float* res)
+void demolib_luafunc_someCalc(lua_State* L, int x, int y, float* res)
 {
-    status_t stat = STATUS_OK;
+    common_log(LOG_INFO, "demolib_luafunc_someCalc()");
 
     int lstat = 0;
-    //LUA_OK		0
-    //LUA_YIELD	1
-    //LUA_ERRRUN	2
-    //LUA_ERRSYNTAX	3
-    //LUA_ERRMEM	4
-    //LUA_ERRGCMM	5
-    //LUA_ERRERR	6
-    //For normal errors, lua_pcall returns the error code LUA_ERRRUN.
-    //Two special kinds of errors deserve different codes, because they never run the error handler.
-    //The first kind is a memory allocation error. For such errors, lua_pcall always returns LUA_ERRMEM.
-    //The second kind is an error while Lua is running the error handler itself. In that case it is of
-    //little use to call the error handler again, so lua_pcall returns immediately with a code LUA_ERRERR.
-    //PANIC: unprotected error in call to Lua API (Call <function> failed)
 
-
-    // Push the function to be called.
+    ///// Push the function to be called.
     lstat = lua_getglobal(L, "somecalc");
-    // Push the arguments to the call.
+
+    ///// Push the arguments to the call.
     lua_pushnumber(L, x);
     lua_pushnumber(L, y);
 
-    // Use lua_pcall to do the actual call.
-    lstat = lua_pcall(L, 2, 1, 0); // 2!!!!
-    lstat = lua_isnumber(L, -1);
-
-    // Pop the results from the stack.
-    *res = (float)lua_tonumber(L, -1);
-    lua_pop(L, 1);  // pop returned value
-
-    if (lstat != 0)
+    ///// Use lua_pcall to do the actual call.
+    lstat = lua_pcall(L, 2, 1, 0);
+    if (lstat >= LUA_ERRRUN)
     {
-        p_luaError(L, "Call somecalc failed");
-        stat = STATUS_ERROR;
+        p_luaError(L, "Call somecalc() failed");
     }
 
-    return stat;
+    ///// Pop the results from the stack.
+    if(lua_isnumber(L, -1))
+    {
+        *res = (float)lua_tonumber(L, -1);
+    }
+    else
+    {
+        p_luaError(L, "Bad somecalc() return value");
+    }
+
+    lua_pop(L, 1);  // pop returned value
 }
 
 //--------------------------------------------------------//
-status_t demolib_handleInput(lua_State* L, unsigned int pin, bool value)
+void demolib_handleInput(lua_State* L, unsigned int pin, bool value)
 {
-    status_t stat = STATUS_OK;
-
-    // Push the function to be called.
+    ///// Push the function to be called.
     lua_getglobal(L, "hinput");
-    // Push the arguments to the call.
+
+    ///// Push the arguments to the call.
     lua_pushnumber(L, pin);
     lua_pushnumber(L, value);
 
-    // Use lua_pcall to do the actual call.
-    if (lua_pcall(L, 2, 1, 0) != 0 || lua_isnumber(L, -1))
+    ///// Use lua_pcall to do the actual call.
+    int lstat = lua_pcall(L, 2, 1, 0);
+
+    if (lstat >= LUA_ERRRUN)
     {
-        p_luaError(L, "Call hinput failed");
+        p_luaError(L, "Call hinput() failed");
     }
 
-    return stat;
+    /////
+    // no return value
 }
 
 //---------------- Lua Funcs Lua -> C --------------------//
@@ -207,7 +190,6 @@ int p_luafunc_log(lua_State* L)
     }
 
     common_log(ll, stringx_content(info));
-
     stringx_destroy(info);
 
     ///// Push return values.
@@ -277,6 +259,17 @@ int p_luafunc_interrupt(lua_State* L)
 //---------------- Private Implementation ----------------//
 
 //--------------------------------------------------------//
+int p_open_demolib (lua_State *L)
+{
+    // Register our C <-> Lua functions.
+    common_log(LOG_INFO, "p_open_demolib()");
+
+    luaL_newlib(L, demolib);
+
+    return 1;
+}
+
+//--------------------------------------------------------//
 void p_luaError(lua_State* L, const char* format, ...)
 {
     static char p_buff[100];
@@ -285,78 +278,62 @@ void p_luaError(lua_State* L, const char* format, ...)
     va_start(args, format);
     vsnprintf(p_buff, sizeof(p_buff), format, args);
 
+    // TODOX log who called or at least more info.
+    luaL_traceback(L, L, NULL, 1);
+    printf("%s\n", lua_tostring(L, -1));
+
     lua_pushstring(L, p_buff);
-    lua_error(L);
+    lua_error(L); // never returns
 }
 
 //--------------------------------------------------------//
-status_t p_getArgInt(lua_State* L, int index, int* ret)
+void p_getArgInt(lua_State* L, int index, int* ret)
 {
-    status_t stat = STATUS_OK;
-
-    if(lua_isnumber(L, index) > 0) // valid
+    if(lua_isnumber(L, index) > 0)
     {
         *ret = (int)lua_tointeger(L, index);
     }
     else
     {
         p_luaError(L, "Invalid integer argument at index %d", index);
-        stat = STATUS_ERROR;
     }
-
-    return stat;
 }
 
 //--------------------------------------------------------//
-status_t p_getArgDbl(lua_State* L, int index, double* ret)
+void p_getArgDbl(lua_State* L, int index, double* ret)
 {
-    status_t stat = STATUS_OK;
-
-    if(lua_isnumber(L, index) > 0) // valid
+    if(lua_isnumber(L, index) > 0)
     {
         *ret = lua_tonumber(L, index);
     }
     else
     {
         p_luaError(L, "Invalid double argument at index %d", index);
-        stat = STATUS_ERROR;
     }
-
-    return stat;
 }
 
 //--------------------------------------------------------//
-status_t p_getArgBool(lua_State* L, int index, bool* ret)
+void p_getArgBool(lua_State* L, int index, bool* ret)
 {
-    status_t stat = STATUS_OK;
-
-    if(lua_isboolean(L, index) > 0) // valid
+    if(lua_isboolean(L, index) > 0)
     {
         *ret = lua_toboolean(L, index);
     }
     else
     {
         p_luaError(L, "Invalid bool argument at index %d", index);
-        stat = STATUS_ERROR;
     }
-
-    return stat;
 }
 
 //--------------------------------------------------------//
-status_t p_getArgStr(lua_State* L, int index, stringx_t* ret)
+void p_getArgStr(lua_State* L, int index, stringx_t* ret)
 {
-    status_t stat = STATUS_OK;
-
-    if(lua_isstring(L, index) > 0) // valid
+    if(lua_isstring(L, index) > 0)
     {
         stringx_set(ret, lua_tostring(L, index));
     }
     else
     {
         p_luaError(L, "Invalid string argument at index %d", index);
-        stat = STATUS_ERROR;
     }
-
-    return stat;
 }

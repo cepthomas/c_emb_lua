@@ -4,10 +4,6 @@
 #include <string.h>
 #include <conio.h>
 
-//#ifdef WIN32
-//#include <windows.h>
-//#endif
-
 #include "board.h"
 #include "stringx.h"
 
