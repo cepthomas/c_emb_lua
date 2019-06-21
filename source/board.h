@@ -75,17 +75,15 @@ status_t board_readDig(unsigned int pin, bool* value);
 status_t board_serOpen(unsigned int channel);
 
 /// Read a line from a serial channel. This does not block. Buffers chars until EOL.
-/// @param channel Specific channel.
 /// @param buff Data buffer. Will be a zero-terminated string.
 /// @param num Length of buff.
 /// @return Status.
-status_t board_serReadLine(unsigned int channel, char* buff, unsigned int num);
+status_t board_serReadLine(char* buff, unsigned int num);
 
-/// Write to a serial channel.
-/// @param channel Specific channel.
+/// Write a line to a serial channel.
 /// @param buff What to send as a zero-terminated string.
 /// @return Status.
-status_t board_serWrite(unsigned int channel, const char* buff);
+status_t board_serWriteLine(const char* buff);
 
 
 //---------------- Timer Functions -----------------//

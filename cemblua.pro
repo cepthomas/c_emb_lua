@@ -21,11 +21,7 @@ QMAKE_EXTRA_TARGETS += first copydata
 INCLUDEPATH += \
     $$SRC_PATH \
     $$LUA_PATH \
-    $$CBOT_PATH \
-    $$SRC_PATH/common \
-    $$SRC_PATH/exec \
-    $$SRC_PATH/xlat \
-    $$SRC_PATH/board
+    $$CBOT_PATH
 
 ### Main app ###
 SOURCES += \
@@ -34,14 +30,14 @@ SOURCES += \
     $$SRC_PATH/common.c \
     $$SRC_PATH/exec.c \
     $$SRC_PATH/board.c \
-    $$SRC_PATH/xlat.c
+    $$SRC_PATH/demolib.c
 
 HEADERS += \
     $$CBOT_PATH/stringx.h \
     $$SRC_PATH/common.h \
     $$SRC_PATH/exec.h \
     $$SRC_PATH/board.h \
-    $$SRC_PATH/xlat.h
+    $$SRC_PATH/demolib.h
 
 
 ### Lua ### TODO make this a lib?

@@ -2,15 +2,10 @@
 Lua utilities.
 --]]
 
-local cemblua = require("system")
+--local demolib = require("demolib")
 
 -- Create the namespace/module.
 local M = {}
-
--- For test/dev remove TODO
-function f (x, y)
-  return (x^2 * math.sin(y))/(1 - x)
-end
 
 --- Creates a function that returns false until the arg is exceeded.
 -- Some description, can be over several lines.
@@ -21,13 +16,15 @@ function M.delay_timer(msec)
   local timeout = msec
 
   -- Grab the start time.
-  local start = cemblua.msec()
+  local start = msec()
+  --local start = demolib.msec()
   
   -- The accessor function.
   local status = 
     function()
       -- Are we there yet?
-      return (cemblua.msec() - start) > timeout
+      return (msec() - start) > timeout
+      --return (demolib.msec() - start) > timeout
     end  
       
   return { status = status }      

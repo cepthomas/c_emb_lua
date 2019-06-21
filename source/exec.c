@@ -1,6 +1,7 @@
 
 #include <string.h>
 #include <conio.h>
+#include <unistd.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -12,14 +13,13 @@
 #include "exec.h"
 #include "common.h"
 #include "board.h"
-#include "xlat.h"
+#include "demolib.h"
 
 
 
 //---------------- Private --------------------------//
 
 #define SYS_TICK_MSEC 10
-#define SER_PORT 0
 #define SER_BUFF_LEN 128
 
 /// Helper macro.
@@ -65,13 +65,13 @@ status_t p_processCommand(stringx_t* sin);
 
 /// @brief Starts the script running.
 /// @return status
-static status_t p_runScript(void);
+static status_t p_startScript(void);
 
 /// @brief Stop the currently running script.
 /// @return status
 static status_t p_stopScript(void);
 
-/// @brief Common handler for execution errors.
+/// @brief Common handler for lua runtime execution errors.
 /// @return status
 static status_t p_processExecError(void);
 
@@ -94,7 +94,7 @@ status_t exec_init(void)
 
     // Set up all board-specific stuff.
     CHECKED_FUNC(stat, board_regTimerInterrupt, SYS_TICK_MSEC, p_timerHandler);
-    CHECKED_FUNC(stat, board_serOpen, SER_PORT);
+    CHECKED_FUNC(stat, board_serOpen, 0);
 
     // Register for input interrupts.
     CHECKED_FUNC(stat, board_regDigInterrupt, p_digInputHandler);
@@ -115,18 +115,13 @@ status_t exec_run(void)
     // Let her rip!
     board_enbInterrupts(true);
     p_loopRunning = true;
-    // Prompt.
-    board_serWrite(0, "\r\n>");
 
-    ////// TODOX //////////////////
-    p_runScript();
-    ////////////////////////
-
+    p_startScript();
 
     // Forever loop.
     while(p_loopRunning && stat == STATUS_OK)
     {
-        stat = board_serReadLine(SER_PORT, p_rxBuf, SER_BUFF_LEN);
+        stat = board_serReadLine(p_rxBuf, SER_BUFF_LEN);
 
         if(strlen(p_rxBuf) > 0)
         {
@@ -186,25 +181,9 @@ void p_timerHandler(void)
 }
 
 //---------------------------------------------------//
-void p_digInputHandler(unsigned int which, bool value) // TODOX
+void p_digInputHandler(unsigned int which, bool value)
 {
-    (void)value;
-
-    // Real simple logic.
-    switch(which)
-    {
-       case DIG_IN_1:
-           break;
-
-       case DIG_IN_2:
-           break;
-
-       case DIG_IN_3:
-           break;
-
-        default:
-            break;
-    }
+    demolib_handleInput(p_LScript, which, value);
 }
 
 //---------------------------------------------------//
@@ -216,10 +195,10 @@ status_t p_processCommand(stringx_t* sin)
     {
         p_stopScript();
     }
-    else if(stringx_starts(sin, "run", false))
-    {
-        p_runScript();
-    }
+    // else if(stringx_starts(sin, "run", false))
+    // {
+    //     p_startScript();
+    // }
     else
     {
         common_log(LOG_WARN, "Invalid cmd:%s", stringx_content(sin));
@@ -230,7 +209,7 @@ status_t p_processCommand(stringx_t* sin)
 }
 
 //---------------------------------------------------//
-status_t p_runScript()
+status_t p_startScript()
 {
     status_t stat = STATUS_OK;
 
@@ -239,35 +218,23 @@ status_t p_runScript()
     // Set up a second Lua thread so we can background execute the script.
     p_LScript = lua_newthread(p_LMain);
 
-    CHECKED_FUNC(stat, xlat_loadLibs, p_LScript);
+    CHECKED_FUNC(stat, demolib_loadLibs, p_LScript);
+
+//    char* dir = getcwd(NULL, 0);
+//    free(dir);
 
     // Load the script/file we are going to run. Hard coded.
-    int result = luaL_loadfile(p_LScript, "../demo_app.lua");
+    int result = luaL_loadfile(p_LScript, "demoapp.lua");
 
-    if (result)
+    if (result == 0)
     {
-        // If something went wrong, error message is at the top of the stack.
-        const char* serr = lua_tostring(p_LScript, -1); // TODOX xlat?
-        common_log(LOG_ERROR, serr);
-    }
-    else
-    {
-        // Pass the context vals to the Lua world in a table named "script_context".
-        lua_newtable(p_LScript); // TODOX xlat all this?
-
-        lua_pushstring(p_LScript, "script_string");
-        lua_pushstring(p_LScript, "Hey diddle diddle");
-        lua_settable(p_LScript, -3);
-
-        lua_pushstring(p_LScript, "script_int");
-        lua_pushinteger(p_LScript, 90909);
-        lua_settable(p_LScript, -3);
-
-        lua_setglobal(p_LScript, "script_context");
-
         // Start the script running.
-        int nargs = 0;
-        int lstat = lua_resume(p_LScript, 0, nargs);
+        stat = demolib_loadContext(p_LScript, "Hey diddle diddle", 90909);
+        int lstat = lua_resume(p_LScript, 0, 0);
+
+        // A quick test.
+        float f;
+        stat = demolib_luafunc_someCalc(p_LScript, 11, 22, &f);
 
         switch(lstat)
         {
@@ -287,6 +254,10 @@ status_t p_runScript()
                 p_processExecError();
                 break;
         }
+    }
+    else
+    {
+        p_processExecError();
     }
 
     return stat;
@@ -312,59 +283,7 @@ status_t p_processExecError()
     // func:28: blabla
 
     p_scriptRunning = false;
-    common_log(LOG_ERROR, lua_tostring(p_LScript, -1));//TODOX xlat?
+    common_log(LOG_ERROR, lua_tostring(p_LScript, -1));//TODO in demolib?
 
     return status;
-}
-
-
-
-double callLuaFunc(lua_State* L) //TODOX
-{
-    // The API protocol to call a function is simple: First, you push the function to be called; second, you push the arguments to the call; then you use lua_pcall to do the actual call; finally, you pop the results from the stack.
-    //
-    // As an example, let us assume that our configuration file has a function like
-    //
-    // function f (x, y)
-    //   return (x^2 * math.sin(y))/(1 - x)
-    // end
-    //
-    // and you want to evaluate, in C, z = f(x, y) for given x and y. Assuming that you have already opened the Lua library and run the configuration file, you can encapsulate this call in the following C function:
-
-    // call a function `f' defined in Lua 
-    double z;
-    int x = 99;
-    int y = 101;
-
-    // push functions and arguments
-    lua_getglobal(L, "f");  // function to be called //TODO xlat this?
-    lua_pushnumber(L, x);   // push 1st argument
-    lua_pushnumber(L, y);   // push 2nd argument
-
-    // do the call (2 arguments, 1 result)
-    if (lua_pcall(L, 2, 1, 0) != 0)
-    {
-        p_processExecError();
-//        error(L, "error running function `f': %s", lua_tostring(L, -1));
-    }
-
-
-
-    // retrieve result
-    if (!lua_isnumber(L, -1))
-    {
-//        error(L, "function `f' must return a number");
-    }
-
-    z = lua_tonumber(L, -1);
-    lua_pop(L, 1);  // pop returned value
-
-    return z;
-
-    // You call lua_pcall with the number of arguments you are passing and the number of results you want. The fourth argument indicates an error-handling function; we will discuss it in a moment. As in a Lua assignment, lua_pcall adjusts the actual number of results to what you have asked for, pushing nils or discarding extra values as needed. Before pushing the results, lua_pcall removes from the stack the function and its arguments. If a function returns multiple results, the first result is pushed first; so, if there are n results, the first one will be at index -n and the last at index -1.
-
-    // If there is any error while lua_pcall is running, lua_pcall returns a value different from zero; moreover, it pushes the error message on the stack (but still pops the function and its arguments). Before pushing the message, however, lua_pcall calls the error handler function, if there is one. To specify an error handler function, we use the last argument of lua_pcall. A zero means no error handler function; that is, the final error message is the original message. Otherwise, that argument should be the index in the stack where the error handler function is located. Notice that, in such cases, the handler must be pushed in the stack before the function to be called and its arguments.
-
-    // For normal errors, lua_pcall returns the error code LUA_ERRRUN. Two special kinds of errors deserve different codes, because they never run the error handler. The first kind is a memory allocation error. For such errors, lua_pcall always returns LUA_ERRMEM. The second kind is an error while Lua is running the error handler itself. In that case it is of little use to call the error handler again, so lua_pcall returns immediately with a code LUA_ERRERR.
-
 }

@@ -1,6 +1,6 @@
 
 #include "stringx.h"
-#include "xlat.h"
+#include "demolib.h"
 #include "board.h"
 
 
@@ -8,7 +8,7 @@
 
 //---------------- Lua Functions in C ---------------//
 
-// TODO template/generator?
+// TODO template/generator for wrappers. also better error checking.
 
 /// Write to the log.
 /// nil log(number level, string text)
@@ -33,7 +33,7 @@ static int p_luafunc_interrupt(lua_State* L);
 
 //---------------- Private Utils --------------------//
 
-/// @brief Report a bad thing.
+/// @brief Report a bad thing detected by this component.
 /// @param[in] L Lua state.
 /// @param[in] format Standard string stuff.
 /// @return Status.
@@ -67,16 +67,11 @@ status_t p_getArgBool(lua_State* L, int index, bool* ret);
 /// @return Status.
 status_t p_getArgStr(lua_State* L, int index, stringx_t* ret);
 
-/// @brief Utility to push a return vector of strings onto the Lua stack as a table.
-/// @param[in] L Lua state.
-/// @param[in] data The strings to push onto the Lua stack.
-//void xlat_pushStrVector(lua_State* L, const QList<QString>& data);
-
 
 //---------------- Public Implementation -------------//
 
 //--------------------------------------------------------//
-status_t xlat_loadLibs(lua_State* L)
+status_t demolib_loadLibs(lua_State* L)
 {
     status_t stat = STATUS_OK;
 
@@ -84,10 +79,10 @@ status_t xlat_loadLibs(lua_State* L)
     luaL_openlibs(L);
 
     // Register our C <-> Lua functions.
-    common_log(LOG_INFO, "Initing Lua functions: cemblua");
+    common_log(LOG_INFO, "Initing Lua functions: demolib");
 
     // List of functions in the module.
-    static const luaL_Reg cemblua[] =
+    static const luaL_Reg demolib[] =
     {
         { "log",  p_luafunc_log },
         { "msec", p_luafunc_msec },
@@ -97,23 +92,110 @@ status_t xlat_loadLibs(lua_State* L)
         { NULL, NULL }
     };
 
-    luaL_newlib(L, cemblua);  // was luaL_register(L, "cemblua", cemblua);
+    luaL_newlib(L, demolib);//TODO this goes into global space? old way was namespaced.
 
     return stat;
 }
 
-//---------------- Lua Funcs Implementation ----------------//
+//---------------- Lua Funcs C -> Lua --------------------//
+
+//--------------------------------------------------------//
+status_t demolib_loadContext(lua_State* L, const char* s, int i)
+{
+    status_t stat = STATUS_OK;
+
+    // Pass the context vals to the Lua world in a table named "script_context".
+    lua_newtable(L);
+
+    lua_pushstring(L, "script_string");
+    lua_pushstring(L, s);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "script_int");
+    lua_pushinteger(L, i);
+    lua_settable(L, -3);
+
+    lua_setglobal(L, "script_context");
+
+    return stat;
+}
+
+//--------------------------------------------------------//
+status_t demolib_luafunc_someCalc(lua_State* L, int x, int y, float* res)
+{
+    status_t stat = STATUS_OK;
+
+    int lstat = 0;
+    //LUA_OK		0
+    //LUA_YIELD	1
+    //LUA_ERRRUN	2
+    //LUA_ERRSYNTAX	3
+    //LUA_ERRMEM	4
+    //LUA_ERRGCMM	5
+    //LUA_ERRERR	6
+    //For normal errors, lua_pcall returns the error code LUA_ERRRUN.
+    //Two special kinds of errors deserve different codes, because they never run the error handler.
+    //The first kind is a memory allocation error. For such errors, lua_pcall always returns LUA_ERRMEM.
+    //The second kind is an error while Lua is running the error handler itself. In that case it is of
+    //little use to call the error handler again, so lua_pcall returns immediately with a code LUA_ERRERR.
+    //PANIC: unprotected error in call to Lua API (Call <function> failed)
+
+
+    // Push the function to be called.
+    lstat = lua_getglobal(L, "somecalc");
+    // Push the arguments to the call.
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+
+    // Use lua_pcall to do the actual call.
+    lstat = lua_pcall(L, 2, 1, 0); // 2!!!!
+    lstat = lua_isnumber(L, -1);
+
+    // Pop the results from the stack.
+    *res = (float)lua_tonumber(L, -1);
+    lua_pop(L, 1);  // pop returned value
+
+    if (lstat != 0)
+    {
+        p_luaError(L, "Call somecalc failed");
+        stat = STATUS_ERROR;
+    }
+
+    return stat;
+}
+
+//--------------------------------------------------------//
+status_t demolib_handleInput(lua_State* L, unsigned int pin, bool value)
+{
+    status_t stat = STATUS_OK;
+
+    // Push the function to be called.
+    lua_getglobal(L, "hinput");
+    // Push the arguments to the call.
+    lua_pushnumber(L, pin);
+    lua_pushnumber(L, value);
+
+    // Use lua_pcall to do the actual call.
+    if (lua_pcall(L, 2, 1, 0) != 0 || lua_isnumber(L, -1))
+    {
+        p_luaError(L, "Call hinput failed");
+    }
+
+    return stat;
+}
+
+//---------------- Lua Funcs Lua -> C --------------------//
 
 //--------------------------------------------------------//
 int p_luafunc_log(lua_State* L)
 {
-    // Get function arguments.
+    ///// Get function arguments.
     int level = 0;
     stringx_t* info = stringx_create(NULL);
-
     p_getArgInt(L, 1, &level);
     p_getArgStr(L, 2, info);
 
+    ///// Do the work.
     // Convert log level.
     loglvl_t ll;
 
@@ -124,21 +206,24 @@ int p_luafunc_log(lua_State* L)
         default: ll = LOG_ERROR; break;
     }
 
-    // Do the work.
     common_log(ll, stringx_content(info));
 
     stringx_destroy(info);
 
-    // Push return values.
+    ///// Push return values.
     return 0; // number of results
 }
 
 //--------------------------------------------------------//
 int p_luafunc_msec(lua_State* L)
 {
+    ///// Get function arguments.
+    // none
+
+    ///// Do the work.
     int msec = common_getMsec();
 
-    // Push return values.
+    ///// Push return values.
     lua_pushinteger(L, msec);
     return 1; // number of results
 }
@@ -146,35 +231,48 @@ int p_luafunc_msec(lua_State* L)
 //--------------------------------------------------------//
 int p_luafunc_digout(lua_State* L)
 {
-    (void)L;
-/// nil digout(number pin, bool state)
+    ///// Get function arguments.
+    int pin;
+    bool state;
+    p_getArgInt(L, 1, &pin);
+    p_getArgBool(L, 2, &state);
 
-    // Push return values.
+    ///// Do the work.
+    board_writeDig((unsigned int)pin, state);
+
+    ///// Push return values.
     return 0; // number of results
 }
 
 //--------------------------------------------------------//
 int p_luafunc_digin(lua_State* L)
 {
-    (void)L;
-/// bool digin(number pin)
+    ///// Get function arguments.
+    int pin;
+    p_getArgInt(L, 1, &pin);
 
-    // Push return values.
-//    lua_pushinteger(L, msec);
+    ///// Do the work.
+    bool state;
+    board_readDig((unsigned int)pin, &state);
+
+    ///// Push return values.
+    lua_pushboolean(L, state);
     return 1; // number of results
 }
 
 //--------------------------------------------------------//
 int p_luafunc_interrupt(lua_State* L)
 {
-    (void)L;
+    ///// Get function arguments.
+    int pin;
+    p_getArgInt(L, 1, &pin);
 
-/// nil interrupt(number pin)
+    ///// Do the work.
+    //TODOX trigger a fake interrupt.
 
-    // Push return values.
+    ///// Push return values.
     return 0; // number of results
 }
-
 
 //---------------- Private Implementation ----------------//
 
@@ -262,29 +360,3 @@ status_t p_getArgStr(lua_State* L, int index, stringx_t* ret)
 
     return stat;
 }
-
-
-//--------------------------------------------------------//
-// status_t xlat_pushStrVector(lua_State* L, const QStringList data)
-// {
-//     status_t stat = STATUS_OK;
-
-//     // Start array structure.
-//     lua_newtable(L);
-
-//     // Determine the index.
-//     int index = lua_gettop(L);
-
-//     // Add the values.
-//    QListIterator<QString> i(data);
-//    while (i.hasNext())
-//    {
-//        lua_pushinteger(L, index); // key
-//        lua_pushstring(L, i.next()); // value
-//        lua_settable(L, -3); // set table entry
-//        ++index;
-//    }
-
-//     // Push the new table.
-//     lua_pushvalue(L, -1);
-// }

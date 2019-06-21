@@ -82,7 +82,7 @@ status_t board_log(const char* txt)
 {
     status_t stat = STATUS_OK;
 
-    board_serWrite(0, txt);
+    board_serWriteLine(txt);
 
     return stat;
 }
@@ -98,7 +98,7 @@ status_t board_regDigInterrupt(fpDigInterrupt fp)
 }
 
 //--------------------------------------------------------//
-status_t board_regTimerInterrupt(unsigned int when, fpTimerInterrupt fp) //TODOX probably need some fake timer for demo purposes.
+status_t board_regTimerInterrupt(unsigned int when, fpTimerInterrupt fp) //TODOX need some fake timer for demo purposes.
 {
     (void)when;
 
@@ -148,14 +148,15 @@ status_t board_serOpen(unsigned int channel)
 
     status_t stat = STATUS_OK;
 
+    // Prompt.
+    board_serWriteLine("\r\n>");
+
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_serReadLine(unsigned int channel, char* buff, unsigned int num)
+status_t board_serReadLine(char* buff, unsigned int num)
 {
-    (void)channel;
-
     status_t stat = STATUS_OK;
 
     // Default.
@@ -173,13 +174,13 @@ status_t board_serReadLine(unsigned int channel, char* buff, unsigned int num)
 
             case '\r':
                 // Echo return.
-                board_serWrite(0, "\r\n");
+                board_serWriteLine("");
                 // Copy to client buff.
                 strncpy(buff, p_rxBufSim, num);
                 // Clear.
                 memset(p_rxBufSim, 0, SER_BUFF_LEN);
                 // Echo prompt.
-                board_serWrite(0, "\r\n>");
+                board_serWriteLine("");
                 break;
 
             default:
@@ -195,13 +196,12 @@ status_t board_serReadLine(unsigned int channel, char* buff, unsigned int num)
 }
 
 //--------------------------------------------------------//
-status_t board_serWrite(unsigned int channel, const char* buff)
+status_t board_serWriteLine(const char* buff)
 {
-    (void)channel;
-
     status_t stat = STATUS_OK;
 
-    printf("%s", buff);
+    // Prompt.
+    printf("%s\r\n>", buff);
 
     return stat;    
 }
