@@ -23,29 +23,32 @@
 #define SER_BUFF_LEN 128
 
 /// Helper macro.
-#define CHECKED_FUNC(_stat, _func, ...) \
+#define CHECKED_FUNC(stat, func, ...) \
 { \
-    _stat = _func(__VA_ARGS__); \
-    if(_stat != STATUS_OK) \
+    stat = func(__VA_ARGS__); \
+    if(stat != STATUS_OK) \
     { \
-        common_log(0, "%s(%d) %s", __FILE__, __LINE__, #_func); \
+        LOG(LOG_ERROR, #func); \
     } \
 }
 
-/// The main Lua context.
+/// The main Lua thread.
 static lua_State* p_LMain;
 
-/// The Lua context where the script is running.
+/// The Lua thread where the script is running.
 static lua_State* p_LScript;
 
 /// The script execution status.
 static bool p_scriptRunning = false;
 
-/// Processing loop Status.
+/// Processing loop status.
 static bool p_loopRunning;
 
-/// Current tick.
+/// Current tick count.
 static int p_tick;
+
+/// Last tick time.
+static unsigned int p_lastTickTime;
 
 /// Serial contents.
 static char p_rxBuf[SER_BUFF_LEN];
@@ -59,7 +62,7 @@ static void p_timerHandler(void);
 static void p_digInputHandler(unsigned int which, bool value);
 
 /// @brief Process for all commands from clients.
-/// @param[in] bin The arbitrary command and args.
+/// @param[in] sin The arbitrary command and args.
 /// @return status
 status_t p_processCommand(stringx_t* sin);
 
@@ -72,8 +75,9 @@ static status_t p_startScript(void);
 static status_t p_stopScript(void);
 
 /// @brief Common handler for lua runtime execution errors.
+/// @param[in] lstat The lua status value.
 /// @return status
-static status_t p_processExecError(void);
+static status_t p_processExecError(int lstat);
 
 
 //---------------- Public Implementation -------------//
@@ -86,6 +90,7 @@ status_t exec_init(void)
     // Init stuff.
     p_loopRunning = false;
     p_tick = 0;
+    p_lastTickTime = 0;
     p_LMain = luaL_newstate();
 
     // Init components.
@@ -130,13 +135,16 @@ status_t exec_run(void)
             stringx_destroy(cmd);
         }
 
-        //TODO sleep() doesn't like running in debugger??
+        //TODO sleep() doesn't like running in win debugger.
         //sleep(5);
     }
 
     // Done, close up shop.
     board_enbInterrupts(false);
     p_stopScript(); // just in case
+
+    lua_close(p_LScript);
+    p_LScript = NULL;
     lua_close(p_LMain);
     p_LMain = NULL;
 
@@ -146,12 +154,80 @@ status_t exec_run(void)
 //---------------- Private --------------------------//
 
 //---------------------------------------------------//
+status_t p_startScript()
+{
+//    status_t stat = STATUS_OK;
+
+    int lstat = LUA_OK;
+
+    // Do the real work - run the Lua script.
+
+    // Load libraries.
+    luaL_openlibs(p_LMain);
+    demolib_preload(p_LMain);
+
+    demolib_loadContext(p_LMain, "Hey diddle diddle", 90909);
+
+    // Set up a second Lua thread so we can background execute the script.
+    p_LScript = lua_newthread(p_LMain);
+
+    // Load the script/file we are going to run.
+    //int result = luaL_loadfile(p_LScript, "demoapp.lua"); TODOX use this after settling down.
+    lstat = luaL_loadfile(p_LScript, "/Dev/repos/c-emb-lua/source/demoapp.lua");
+
+    if (lstat == LUA_OK)
+    {
+        // Init the script. This also starts execution.
+        lstat = lua_resume(p_LScript, 0, 0);
+        p_scriptRunning = true;
+
+        // A quick test. Do this after loading the file then running it.
+        double d;
+        demolib_luafunc_someCalc(p_LScript, 11, 22, &d);
+        LOG(LOG_INFO, "demolib_luafunc_someCalc():%f", d);
+
+        switch(lstat)
+        {
+            case LUA_YIELD:
+                // If it is long running, it will yield and get resumed in the timer callback.
+                LOG(LOG_INFO, "LUA_YIELD.");
+                lstat = LUA_OK;
+                break;
+
+            case LUA_OK:
+                // If it is not long running, it is complete now.
+                p_scriptRunning = false;
+                LOG(LOG_INFO, "Finished script.");
+                break;
+
+            default:
+                // Unexpected error.
+                p_processExecError(lstat);
+                break;
+        }
+    }
+    else
+    {
+        p_processExecError(lstat);
+    }
+
+    return lstat == LUA_OK ? STATUS_OK : STATUS_ERROR;
+}
+
+//---------------------------------------------------//
 void p_timerHandler(void)
 {
     // This arrives every SYS_TICK_MSEC.
     // Do the real work of the application.
 
     p_tick++;
+
+    unsigned int t = common_getMsec();
+    if(t - p_lastTickTime > SYS_TICK_MSEC + 1)
+    {
+        // TODO Missed slot?
+    }
+    p_lastTickTime = t;
 
     // Script stuff.
     if(p_scriptRunning && p_LScript != NULL)
@@ -161,21 +237,21 @@ void p_timerHandler(void)
 
         switch(lstat)
         {
-        case LUA_YIELD:
-            // Still running - continue the script.
-            lua_resume(p_LScript, 0, 0);
-            break;
+            case LUA_YIELD:
+                // Still running - continue the script.
+                lua_resume(p_LScript, 0, 0);
+                break;
 
-        case 0:
-            // It is complete now.
-            p_scriptRunning = false;
-            common_log(LOG_INFO, "Finished script.");
-            break;
+            case LUA_OK:
+                // It is complete now.
+                p_scriptRunning = false;
+                LOG(LOG_INFO, "Finished script.");
+                break;
 
-        default:
-            // Unexpected error.
-            p_processExecError();
-            break;
+            default:
+                // Unexpected error.
+                p_processExecError(lstat);
+                break;
         }
     }
 }
@@ -201,67 +277,7 @@ status_t p_processCommand(stringx_t* sin)
     // }
     else
     {
-        common_log(LOG_WARN, "Invalid cmd:%s", stringx_content(sin));
-    }
-
-    return stat;
-}
-
-//---------------------------------------------------//
-status_t p_startScript()
-{
-    status_t stat = STATUS_OK;
-
-    // Do the real work - run the Lua script.
-
-    // Set up a second Lua thread so we can background execute the script.
-    p_LScript = lua_newthread(p_LMain);
-
-    // Load libraries.
-    luaL_openlibs(p_LScript);
-    demolib_preload(p_LScript);
-
-    // Load the script/file we are going to run. Hard coded.
-    int result = luaL_loadfile(p_LScript, "demoapp.lua");
-//    The return values of lua_load are:
-//    LUA_OK: no errors;
-//    LUA_ERRSYNTAX: syntax error during precompilation;
-//    LUA_ERRMEM: memory allocation (out-of-memory) error;
-//    LUA_ERRGCMM: error while running a __gc metamethod.
-
-    if (result == LUA_OK)
-    {
-        // Start the script running.
-        demolib_loadContext(p_LScript, "Hey diddle diddle", 90909);
-        int lstat = lua_resume(p_LScript, 0, 0);
-
-        // A quick test.
-        float f;
-        demolib_luafunc_someCalc(p_LScript, 11, 22, &f);
-        common_log(LOG_INFO, "demolib_luafunc_someCalc():%f", (float)f);
-
-        switch(lstat)
-        {
-            case LUA_YIELD:
-                // If it is long running, it will yield and get resumed in the timer callback.
-                p_scriptRunning = true;
-                break;
-
-            case 0:
-                // If it is not long running, it is complete now.
-                p_scriptRunning = false;
-                common_log(LOG_INFO, "Finished script.");
-                break;
-
-            default:
-                // Unexpected error.
-                p_processExecError();
-                break;
-        }
-    }
-    else
-    {
-        p_processExecError();
+        LOG(LOG_WARN, "Invalid cmd:%s", stringx_content(sin));
     }
 
     return stat;
@@ -278,14 +294,26 @@ status_t p_stopScript()
 }
 
 //---------------------------------------------------//
-status_t p_processExecError()
+status_t p_processExecError(int lstat)
 {
     status_t status = STATUS_OK;
 
     p_scriptRunning = false;
 
+    const char* lerr = "???";
+    switch(lstat)
+    {
+        case LUA_OK: lerr = "LUA_OK"; break;
+        case LUA_YIELD: lerr = "LUA_YIELD"; break;
+        case LUA_ERRRUN: lerr = "LUA_ERRRUN"; break;
+        case LUA_ERRSYNTAX: lerr = "LUA_ERRSYNTAX"; break;
+        case LUA_ERRMEM: lerr = "LUA_ERRMEM"; break;
+        case LUA_ERRGCMM: lerr = "LUA_ERRGCMM"; break;
+        case LUA_ERRERR: lerr = "LUA_ERRERR"; break;
+    }
+
     // The error string from Lua.
-    common_log(LOG_ERROR, lua_tostring(p_LScript, -1));
+    LOG(LOG_ERROR, "%s: %s", lerr, lua_tostring(p_LScript, -1));
 
     return status;
 }

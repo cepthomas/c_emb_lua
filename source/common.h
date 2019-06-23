@@ -24,6 +24,7 @@ typedef enum
     STATUS_FATAL
 } status_t;
 
+/// Log levels.
 typedef enum
 {
     LOG_INFO,
@@ -36,13 +37,39 @@ typedef enum
 /// @return Status.
 status_t common_init(void);
 
-/// Maybe log some information. TODO could be fancier with macros to capture FILE/LINE etc.
+/// Maybe log some information.
+/// @param level See common_setLogLevel().
+/// @param file Source file.
+/// @param line Source line number.
+/// @param format Format string followed by varargs.
+status_t common_log(loglvl_t level, const char* file, int line, const char* format, ...);
+
+/// Helper macro.
 /// @param level See common_setLogLevel().
 /// @param format Format string followed by varargs.
-status_t common_log(loglvl_t level, const char* format, ...);
+#define LOG(level, format, ...) common_log(level, __FILE__, __LINE__, format, ##__VA_ARGS__)
 
 /// Returns the number of milliseconds since the app was started.
 /// @return The msec.
-int common_getMsec(void);
+unsigned int common_getMsec(void);
+
+/// Format a readable string from the argument.
+/// @param level Log level.
+/// @return The string.
+const char* common_xlatLogLevel(loglvl_t level);
+
+/// Format a readable string from the argument.
+/// @param stat System status.
+/// @return The string.
+const char* common_xlatStatus(status_t stat);
+
+/// Format a readable string from the argument.
+/// @param lstat Lua status.
+/// @return The string.
+const char* common_xlatLuaStatus(int lstat);
+
+/// Dump the lua stack contents.
+/// @param L Lua state.
+void common_dumpStack(lua_State *L);
 
 #endif // COMMON_H

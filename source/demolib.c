@@ -8,7 +8,7 @@
 
 //---------------- Lua Functions in C ---------------//
 
-// TODO template/generator for wrappers. also better error checking throughout.
+// TODO template/generator for wrappers?
 
 /// Write to the log.
 /// nil log(number level, string text)
@@ -25,10 +25,6 @@ static int p_luafunc_digout(lua_State* L);
 /// Get a digital input (or output).
 /// bool digin(number pin)
 static int p_luafunc_digin(lua_State* L);
-
-/// Trigger a digital interrupt.
-/// nil interrupt(number pin)
-static int p_luafunc_interrupt(lua_State* L);
 
 
 //---------------- Private Utils --------------------//
@@ -74,7 +70,6 @@ static const luaL_Reg demolib[] =
     { "msec", p_luafunc_msec },
     { "digout", p_luafunc_digout },
     { "digin", p_luafunc_digin },
-    { "interrupt", p_luafunc_interrupt },
     { NULL, NULL }
 };
 
@@ -84,37 +79,34 @@ static const luaL_Reg demolib[] =
 //--------------------------------------------------------//
 void demolib_preload(lua_State* L)
 {
-
-    common_log(LOG_INFO, "demolib_preload()");
+    //LOG(LOG_INFO, "demolib_preload()");
     luaL_requiref(L, "demolib", p_open_demolib, 1);
 }
-
-//--------------------------------------------------------//
-void demolib_loadContext(lua_State* L, const char* s, int i)
-{
-    common_log(LOG_INFO, "demolib_loadContext()");
-
-    ///// Pass the context vals to the Lua world in a table named "script_context".
-    lua_newtable(L);
-
-    lua_pushstring(L, "script_string");
-    lua_pushstring(L, s);
-    lua_settable(L, -3);
-
-    lua_pushstring(L, "script_int");
-    lua_pushinteger(L, i);
-    lua_settable(L, -3);
-
-    lua_setglobal(L, "script_context");
-}
-
 
 //---------------- Lua Funcs C -> Lua --------------------//
 
 //--------------------------------------------------------//
-void demolib_luafunc_someCalc(lua_State* L, int x, int y, float* res)
+void demolib_loadContext(lua_State* L, const char* s, int i)
 {
-    common_log(LOG_INFO, "demolib_luafunc_someCalc()");
+    //LOG(LOG_INFO, "demolib_loadContext()");
+
+    ///// Pass the context vals to the Lua world in a table named "script_context".
+    lua_newtable(L); // Creates a new empty table and pushes it onto the stack.
+
+    lua_pushstring(L, "script_string");
+    lua_pushstring(L, s);
+    lua_settable(L, -3);
+    lua_pushstring(L, "script_int");
+    lua_pushinteger(L, i);
+    lua_settable(L, -3);
+
+    lua_setglobal(L, "script_context"); // Pops a value from the stack and sets it as the new value of global name.
+}
+
+//--------------------------------------------------------//
+void demolib_luafunc_someCalc(lua_State* L, int x, int y, double* res)
+{
+    //LOG(LOG_INFO, "demolib_luafunc_someCalc()");
 
     int lstat = 0;
 
@@ -129,13 +121,13 @@ void demolib_luafunc_someCalc(lua_State* L, int x, int y, float* res)
     lstat = lua_pcall(L, 2, 1, 0);
     if (lstat >= LUA_ERRRUN)
     {
-        p_luaError(L, "Call somecalc() failed");
+        p_luaError(L, "lua_pcall somecalc() failed");
     }
 
     ///// Pop the results from the stack.
     if(lua_isnumber(L, -1))
     {
-        *res = (float)lua_tonumber(L, -1);
+        *res = lua_tonumber(L, -1);
     }
     else
     {
@@ -189,7 +181,7 @@ int p_luafunc_log(lua_State* L)
         default: ll = LOG_ERROR; break;
     }
 
-    common_log(ll, stringx_content(info));
+    LOG(ll, stringx_content(info));
     stringx_destroy(info);
 
     ///// Push return values.
@@ -242,19 +234,6 @@ int p_luafunc_digin(lua_State* L)
     return 1; // number of results
 }
 
-//--------------------------------------------------------//
-int p_luafunc_interrupt(lua_State* L)
-{
-    ///// Get function arguments.
-    int pin;
-    p_getArgInt(L, 1, &pin);
-
-    ///// Do the work.
-    //TODOX trigger a fake interrupt.
-
-    ///// Push return values.
-    return 0; // number of results
-}
 
 //---------------- Private Implementation ----------------//
 
@@ -262,7 +241,7 @@ int p_luafunc_interrupt(lua_State* L)
 int p_open_demolib (lua_State *L)
 {
     // Register our C <-> Lua functions.
-    common_log(LOG_INFO, "p_open_demolib()");
+    //LOG(LOG_INFO, "p_open_demolib()");
 
     luaL_newlib(L, demolib);
 
@@ -278,7 +257,8 @@ void p_luaError(lua_State* L, const char* format, ...)
     va_start(args, format);
     vsnprintf(p_buff, sizeof(p_buff), format, args);
 
-    // TODOX log who called or at least more info.
+    // Dump stacktrace.
+    // https://stackoverflow.com/questions/12256455/print-stacktrace-from-c-code-with-embedded-lua
     luaL_traceback(L, L, NULL, 1);
     printf("%s\n", lua_tostring(L, -1));
 

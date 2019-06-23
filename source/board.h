@@ -49,7 +49,7 @@ status_t board_destroy(void);
 
 //---------------- Digital IO Functions -----------------//
 
-/// Register for digital input interrupt.
+/// Client registration for digital input interrupt.
 /// @param fp Callback function.
 /// @return Status.
 status_t board_regDigInterrupt(fpDigInterrupt fp);
@@ -88,7 +88,7 @@ status_t board_serWriteLine(const char* buff);
 
 //---------------- Timer Functions -----------------//
 
-/// Timer interrupts.
+/// Client registration for timer interrupts.
 /// @param period How oftern in msec.
 /// @param fp Callback function.
 /// @return Status.
@@ -97,5 +97,6 @@ status_t board_regTimerInterrupt(unsigned int period, fpTimerInterrupt fp);
 /// Get number of microseconds since beginning.
 /// @return Microseconds.
 uint64_t board_getCurrentUsec(void);
+
 
 #endif // BOARD_H

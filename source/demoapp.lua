@@ -1,5 +1,5 @@
 --[[
-Lua script for a simplistic realtime(ish) application.
+Lua script for a simplistic multithreaded/coroutine application.
 --]]
 
 local demolib = require "demolib"
@@ -7,10 +7,9 @@ local ut = require "utils"
 local math = require "math"
 
 function do_loop()
-  -- Do work then yield.
+  -- Do some work then yield.
 
   for i = 1, 10 do
-    -- demolib.log("loop num:"..i)
     demolib.log(0, "loop num:"..i)
 
     -- Do work
@@ -36,21 +35,17 @@ function somecalc (x, y)
 end
 
 
-
 -----------------------------------------------------------------------------
 -- Module initialization.
--- ???
 
 demolib.log(0, "Module initialization")
 
-demolib.log(0, demolib.script_context)
--- TODOX did this:
--- >stack traceback:
---         demoapp.lua:46: in main chunk
+-- for n in pairs(_G) do print(n) end
 
 -- Process the passed context.
-ctx = demolib.script_context
+ctx = script_context
 slog = string.format ("context script_string:%s script_int:%d", ctx.script_string, ctx.script_int)
 demolib.log(0, slog)
 
+-- Start working.
 do_loop()
