@@ -89,10 +89,10 @@ status_t board_serWriteLine(const char* buff);
 //---------------- Timer Functions -----------------//
 
 /// Client registration for timer interrupts.
-/// @param period How oftern in msec.
+/// @param msec How often in msec.
 /// @param fp Callback function.
 /// @return Status.
-status_t board_regTimerInterrupt(unsigned int period, fpTimerInterrupt fp);
+status_t board_regTimerInterrupt(unsigned int msec, fpTimerInterrupt fp);
 
 /// Get number of microseconds since beginning.
 /// @return Microseconds.

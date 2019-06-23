@@ -28,7 +28,7 @@
     stat = func(__VA_ARGS__); \
     if(stat != STATUS_OK) \
     { \
-        LOG(LOG_ERROR, #func); \
+        common_log(LOG_ERROR, #func); \
     } \
 }
 
@@ -135,7 +135,7 @@ status_t exec_run(void)
             stringx_destroy(cmd);
         }
 
-        //TODO sleep() doesn't like running in win debugger.
+        //This doesn't like running in win debugger.
         //sleep(5);
     }
 
@@ -172,8 +172,7 @@ status_t p_startScript()
     p_LScript = lua_newthread(p_LMain);
 
     // Load the script/file we are going to run.
-    //int result = luaL_loadfile(p_LScript, "demoapp.lua"); TODOX use this after settling down.
-    lstat = luaL_loadfile(p_LScript, "/Dev/repos/c-emb-lua/source/demoapp.lua");
+    lstat = luaL_loadfile(p_LScript, "demoapp.lua");
 
     if (lstat == LUA_OK)
     {
@@ -184,20 +183,20 @@ status_t p_startScript()
         // A quick test. Do this after loading the file then running it.
         double d;
         demolib_luafunc_someCalc(p_LScript, 11, 22, &d);
-        LOG(LOG_INFO, "demolib_luafunc_someCalc():%f", d);
+        // common_log(LOG_INFO, "demolib_luafunc_someCalc():%f", d);
 
         switch(lstat)
         {
             case LUA_YIELD:
                 // If it is long running, it will yield and get resumed in the timer callback.
-                LOG(LOG_INFO, "LUA_YIELD.");
+                // common_log(LOG_INFO, "LUA_YIELD.");
                 lstat = LUA_OK;
                 break;
 
             case LUA_OK:
                 // If it is not long running, it is complete now.
                 p_scriptRunning = false;
-                LOG(LOG_INFO, "Finished script.");
+                common_log(LOG_INFO, "Finished script.");
                 break;
 
             default:
@@ -222,10 +221,11 @@ void p_timerHandler(void)
 
     p_tick++;
 
+    // Crude responsiveness measurement.
     unsigned int t = common_getMsec();
-    if(t - p_lastTickTime > SYS_TICK_MSEC + 1)
+    if(t - p_lastTickTime > SYS_TICK_MSEC + SYS_TICK_MSEC / 5)
     {
-        // TODO Missed slot?
+        common_log(LOG_WARN, "Tick seems to have taken too long.");
     }
     p_lastTickTime = t;
 
@@ -245,7 +245,7 @@ void p_timerHandler(void)
             case LUA_OK:
                 // It is complete now.
                 p_scriptRunning = false;
-                LOG(LOG_INFO, "Finished script.");
+                common_log(LOG_INFO, "Finished script.");
                 break;
 
             default:
@@ -271,13 +271,9 @@ status_t p_processCommand(stringx_t* sin)
     {
         p_stopScript();
     }
-    // else if(stringx_starts(sin, "run", false))
-    // {
-    //     p_startScript();
-    // }
     else
     {
-        LOG(LOG_WARN, "Invalid cmd:%s", stringx_content(sin));
+        common_log(LOG_WARN, "Invalid cmd:%s", stringx_content(sin));
     }
 
     return stat;
@@ -313,7 +309,7 @@ status_t p_processExecError(int lstat)
     }
 
     // The error string from Lua.
-    LOG(LOG_ERROR, "%s: %s", lerr, lua_tostring(p_LScript, -1));
+    common_log(LOG_ERROR, "%s: %s", lerr, lua_tostring(p_LScript, -1));
 
     return status;
 }

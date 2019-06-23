@@ -4,6 +4,10 @@
 #include <string.h>
 #include <conio.h>
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #include "board.h"
 #include "stringx.h"
 
@@ -21,9 +25,6 @@ static fpTimerInterrupt p_timerInterrupt;
 /// Interrupts enabled?
 static bool p_enbInterrupts;
 
-/// Main timer period in msec.
-static unsigned int p_timerPeriod;
-
 /// Serial receive buffer to collect input chars.
 /// In this simulator we will used stdio for serial IO.
 static char p_rxBuff[SER_BUFF_LEN];
@@ -32,6 +33,18 @@ static char p_rxBuff[SER_BUFF_LEN];
 
 /// Simulated digital IO pins.
 static bool p_digPinsSim[NUM_DIG_PINS];
+
+#ifdef WIN32
+static HANDLE p_winHandle;
+static VOID CALLBACK p_winTimerHandler(PVOID, BOOLEAN);
+VOID CALLBACK p_winTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
+{
+    (void)lpParameter;
+    (void)TimerOrWaitFired;
+    // Call our timer.
+    p_timerInterrupt();
+}
+#endif
 
 
 //---------------- Public Implementation -----------------//
@@ -46,7 +59,6 @@ status_t board_init(void)
     p_enbInterrupts = false;
     p_digInterrupt = NULL;
     p_timerInterrupt = NULL;
-    p_timerPeriod = 0; // not running
 
     for(int i = 0; i < NUM_DIG_PINS; i++)
     {
@@ -60,6 +72,11 @@ status_t board_init(void)
 status_t board_destroy(void)
 {
     status_t stat = STATUS_OK;
+
+#ifdef WIN32
+    DeleteTimerQueueTimer(NULL, p_winHandle, NULL);
+    CloseHandle(p_winHandle);
+#endif
 
     return stat;
 }
@@ -95,13 +112,19 @@ status_t board_regDigInterrupt(fpDigInterrupt fp)
 }
 
 //--------------------------------------------------------//
-status_t board_regTimerInterrupt(unsigned int when, fpTimerInterrupt fp)
+status_t board_regTimerInterrupt(unsigned int msec, fpTimerInterrupt fp)
 {
-    (void)when;
-
     status_t stat = STATUS_OK;
 
     p_timerInterrupt = fp;
+
+#ifdef WIN32
+    if(CreateTimerQueueTimer(&p_winHandle, NULL, (WAITORTIMERCALLBACK)p_winTimerHandler,
+         NULL, msec, msec, WT_EXECUTEINTIMERTHREAD) == 0)
+    {
+        stat = STATUS_ERROR;
+    }
+#endif
 
     return stat;
 }
@@ -163,30 +186,6 @@ status_t board_serOpen(unsigned int channel)
     return stat;
 }
 
-static unsigned int p_lastMsec = 0;
-
-
-//--------------------------------------------------------//
-void p_doSim()
-{
-    unsigned int msec = common_getMsec();
-
-    if(msec - p_lastMsec > 20)
-    {
-        if(p_digInterrupt != NULL)
-        {
-            //p_digInterrupt();
-        }
-
-        if(p_timerInterrupt != NULL)
-        {
-            p_timerInterrupt();
-        }
-
-        p_lastMsec = msec;
-    }
-}
-
 //--------------------------------------------------------//
 status_t board_serReadLine(char* buff, unsigned int num)
 {
@@ -194,11 +193,6 @@ status_t board_serReadLine(char* buff, unsigned int num)
 
     // Default.
     buff[0] = 0;
-
-
-    // TODOX this:
-    p_doSim();
-
 
     char c = (char)_getch();
 

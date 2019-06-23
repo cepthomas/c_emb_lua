@@ -8,7 +8,7 @@
 
 //---------------- Lua Functions in C ---------------//
 
-// TODO template/generator for wrappers?
+// Use template/generator for wrappers?
 
 /// Write to the log.
 /// nil log(number level, string text)
@@ -96,6 +96,7 @@ void demolib_loadContext(lua_State* L, const char* s, int i)
     lua_pushstring(L, "script_string");
     lua_pushstring(L, s);
     lua_settable(L, -3);
+    
     lua_pushstring(L, "script_int");
     lua_pushinteger(L, i);
     lua_settable(L, -3);
@@ -172,16 +173,16 @@ int p_luafunc_log(lua_State* L)
 
     ///// Do the work.
     // Convert log level.
-    loglvl_t ll;
+    loglvl_t llevel;
 
     switch(level)
     {
-        case 0: ll = LOG_INFO; break;
-        case 1: ll = LOG_WARN; break;
-        default: ll = LOG_ERROR; break;
+        case 0: llevel = LOG_INFO; break;
+        case 1: llevel = LOG_WARN; break;
+        default: llevel = LOG_ERROR; break;
     }
 
-    LOG(ll, stringx_content(info));
+    common_log(llevel, stringx_content(info));
     stringx_destroy(info);
 
     ///// Push return values.
@@ -195,7 +196,7 @@ int p_luafunc_msec(lua_State* L)
     // none
 
     ///// Do the work.
-    int msec = common_getMsec();
+    unsigned int msec = common_getMsec();
 
     ///// Push return values.
     lua_pushinteger(L, msec);

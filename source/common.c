@@ -11,12 +11,11 @@
 /// When the app was started.
 static uint64_t p_startTime;
 
-/// Fixed size.
+/// Fixed size for logging.
 #define LOG_LINE_LEN 100
 
 
 //---------------- Public Implementation -------------//
-
 
 //--------------------------------------------------------//
 status_t common_init(void)
@@ -29,13 +28,13 @@ status_t common_init(void)
 }
 
 //--------------------------------------------------------//
-status_t common_log(loglvl_t level, const char* file, int line, const char* format, ...)
+status_t common_log(loglvl_t level, const char* format, ...)
 {
     status_t stat = STATUS_OK;
   
     static char buff[LOG_LINE_LEN];
 
-    sprintf(buff, "%s %s(%d) ", common_xlatLogLevel(level), file, line);
+    sprintf(buff, "%s ", common_xlatLogLevel(level));
     va_list args;
     va_start(args, format);
     vsnprintf(buff + strlen(buff), LOG_LINE_LEN - 1, format, args);

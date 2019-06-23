@@ -37,17 +37,10 @@ typedef enum
 /// @return Status.
 status_t common_init(void);
 
-/// Maybe log some information.
-/// @param level See common_setLogLevel().
-/// @param file Source file.
-/// @param line Source line number.
-/// @param format Format string followed by varargs.
-status_t common_log(loglvl_t level, const char* file, int line, const char* format, ...);
-
-/// Helper macro.
+/// Maybe log some information. This is crude, doesn't have timestamps, or file/line info. Oh well.
 /// @param level See common_setLogLevel().
 /// @param format Format string followed by varargs.
-#define LOG(level, format, ...) common_log(level, __FILE__, __LINE__, format, ##__VA_ARGS__)
+status_t common_log(loglvl_t level, const char* format, ...);
 
 /// Returns the number of milliseconds since the app was started.
 /// @return The msec.
