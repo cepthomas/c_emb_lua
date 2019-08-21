@@ -3,8 +3,10 @@
 #define XLAT_H
 
 #include "common.h"
+#include "luainterop.h"
 
-/// @file Provides a lua lib implemented in C.
+
+/// @file Provides an example app specific lua lib implemented in C.
 
 /// Setup to load the libs.
 /// @param L Lua environment.

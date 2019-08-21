@@ -8,7 +8,7 @@
 
 //---------------- Lua Functions in C ---------------//
 
-// Use template/generator for wrappers?
+// TODO Use template/generator for wrappers?
 
 /// Write to the log.
 /// nil log(number level, string text)
@@ -29,34 +29,6 @@ static int p_luafunc_digin(lua_State* L);
 
 //---------------- Private Utils --------------------//
 
-/// Report a bad thing detected by this component.
-/// @param[in] L Lua state.
-/// @param[in] format Standard string stuff.
-void p_luaError(lua_State* L, const char* format, ...);
-
-/// Utility to get an int arg off the Lua stack.
-/// @param[in] L Lua state.
-/// @param[in] index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-void p_getArgInt(lua_State* L, int index, int* ret);
-
-/// Utility to get a double arg off the Lua stack.
-/// @param[in] L Lua state.
-/// @param[in] index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-void p_getArgDbl(lua_State* L, int index, double* ret);
-
-/// Utility to get a boolean arg off the Lua stack.
-/// @param[in] L Lua state.
-/// @param[in] index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-void p_getArgBool(lua_State* L, int index, bool* ret);
-
-/// Utility to get a string arg off the Lua stack.
-/// @param[in] L Lua state.
-/// @param[in] index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-void p_getArgStr(lua_State* L, int index, stringx_t* ret);
 
 /// Called by system to actually load the lib.
 /// @param[in] L Lua state.
@@ -122,7 +94,7 @@ void demolib_luafunc_someCalc(lua_State* L, int x, int y, double* res)
     lstat = lua_pcall(L, 2, 1, 0);
     if (lstat >= LUA_ERRRUN)
     {
-        p_luaError(L, "lua_pcall somecalc() failed");
+        luainterop_luaError(L, "lua_pcall somecalc() failed");
     }
 
     ///// Pop the results from the stack.
@@ -132,7 +104,7 @@ void demolib_luafunc_someCalc(lua_State* L, int x, int y, double* res)
     }
     else
     {
-        p_luaError(L, "Bad somecalc() return value");
+        luainterop_luaError(L, "Bad somecalc() return value");
     }
 
     lua_pop(L, 1);  // pop returned value
@@ -153,7 +125,7 @@ void demolib_handleInput(lua_State* L, unsigned int pin, bool value)
 
     if (lstat >= LUA_ERRRUN)
     {
-        p_luaError(L, "Call hinput() failed");
+        luainterop_luaError(L, "Call hinput() failed");
     }
 
     /////
@@ -168,8 +140,8 @@ int p_luafunc_log(lua_State* L)
     ///// Get function arguments.
     int level = 0;
     stringx_t* info = stringx_create(NULL);
-    p_getArgInt(L, 1, &level);
-    p_getArgStr(L, 2, info);
+    luainterop_getArgInt(L, 1, &level);
+    luainterop_getArgStr(L, 2, info);
 
     ///// Do the work.
     // Convert log level.
@@ -209,8 +181,8 @@ int p_luafunc_digout(lua_State* L)
     ///// Get function arguments.
     int pin;
     bool state;
-    p_getArgInt(L, 1, &pin);
-    p_getArgBool(L, 2, &state);
+    luainterop_getArgInt(L, 1, &pin);
+    luainterop_getArgBool(L, 2, &state);
 
     ///// Do the work.
     board_writeDig((unsigned int)pin, state);
@@ -224,7 +196,7 @@ int p_luafunc_digin(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
-    p_getArgInt(L, 1, &pin);
+    luainterop_getArgInt(L, 1, &pin);
 
     ///// Do the work.
     bool state;
@@ -249,72 +221,3 @@ int p_open_demolib (lua_State *L)
     return 1;
 }
 
-//--------------------------------------------------------//
-void p_luaError(lua_State* L, const char* format, ...)
-{
-    static char p_buff[100];
-
-    va_list args;
-    va_start(args, format);
-    vsnprintf(p_buff, sizeof(p_buff), format, args);
-
-    // Dump stacktrace.
-    // https://stackoverflow.com/questions/12256455/print-stacktrace-from-c-code-with-embedded-lua
-    luaL_traceback(L, L, NULL, 1);
-    printf("%s\n", lua_tostring(L, -1));
-
-    lua_pushstring(L, p_buff);
-    lua_error(L); // never returns
-}
-
-//--------------------------------------------------------//
-void p_getArgInt(lua_State* L, int index, int* ret)
-{
-    if(lua_isnumber(L, index) > 0)
-    {
-        *ret = (int)lua_tointeger(L, index);
-    }
-    else
-    {
-        p_luaError(L, "Invalid integer argument at index %d", index);
-    }
-}
-
-//--------------------------------------------------------//
-void p_getArgDbl(lua_State* L, int index, double* ret)
-{
-    if(lua_isnumber(L, index) > 0)
-    {
-        *ret = lua_tonumber(L, index);
-    }
-    else
-    {
-        p_luaError(L, "Invalid double argument at index %d", index);
-    }
-}
-
-//--------------------------------------------------------//
-void p_getArgBool(lua_State* L, int index, bool* ret)
-{
-    if(lua_isboolean(L, index) > 0)
-    {
-        *ret = lua_toboolean(L, index);
-    }
-    else
-    {
-        p_luaError(L, "Invalid bool argument at index %d", index);
-    }
-}
-
-//--------------------------------------------------------//
-void p_getArgStr(lua_State* L, int index, stringx_t* ret)
-{
-    if(lua_isstring(L, index) > 0)
-    {
-        stringx_set(ret, lua_tostring(L, index));
-    }
-    else
-    {
-        p_luaError(L, "Invalid string argument at index %d", index);
-    }
-}

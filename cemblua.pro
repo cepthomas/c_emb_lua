@@ -7,7 +7,7 @@ QMAKE_CFLAGS += -Werror
 
 
 SRC_PATH = "./source"
-CBOT_PATH = "../c-bag-of-tricks/source"
+CBOT_PATH = "../c-bag-of-tricks/source" #TODO fix this
 LUA_PATH = "./lua-5.3.5/src"
 
 # Copy lua scripts.
@@ -27,6 +27,7 @@ INCLUDEPATH += \
 SOURCES += \
     $$CBOT_PATH/stringx.c \
     $$SRC_PATH/main.c \
+    $$SRC_PATH/luainterop.c \
     $$SRC_PATH/common.c \
     $$SRC_PATH/exec.c \
     $$SRC_PATH/board.c \
@@ -35,6 +36,7 @@ SOURCES += \
 HEADERS += \
     $$CBOT_PATH/stringx.h \
     $$SRC_PATH/common.h \
+    $$SRC_PATH/luainterop.h \
     $$SRC_PATH/exec.h \
     $$SRC_PATH/board.h \
     $$SRC_PATH/demolib.h

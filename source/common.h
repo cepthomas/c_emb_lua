@@ -10,10 +10,6 @@
 #include <stdbool.h>
 #include <float.h>
 
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-
 
 /// General status value.
 typedef enum
@@ -55,14 +51,5 @@ const char* common_xlatLogLevel(loglvl_t level);
 /// @param stat System status.
 /// @return The string.
 const char* common_xlatStatus(status_t stat);
-
-/// Format a readable string from the argument.
-/// @param lstat Lua status.
-/// @return The string.
-const char* common_xlatLuaStatus(int lstat);
-
-/// Dump the lua stack contents.
-/// @param L Lua state.
-void common_dumpStack(lua_State *L);
 
 #endif // COMMON_H

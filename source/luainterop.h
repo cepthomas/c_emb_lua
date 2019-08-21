@@ -1,0 +1,54 @@
+
+#ifndef LUAINTEROP_H
+#define LUAINTEROP_H
+
+/// @file Generic stuff for talking with lua. TODO could be in a lib.
+
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+
+#include "common.h"
+#include "stringx.h"
+
+
+/// Format a readable string from the argument.
+/// @param lstat Lua status.
+/// @return The string.
+const char* luainterop_xlatLuaStatus(int lstat);
+
+/// Dump the lua stack contents.
+/// @param L Lua state.
+void luainterop_dumpStack(lua_State *L);
+
+/// Report a bad thing detected by this component.
+/// @param[in] L Lua state.
+/// @param[in] format Standard string stuff.
+void luainterop_luaError(lua_State* L, const char* format, ...);
+
+/// Utility to get an int arg off the Lua stack.
+/// @param[in] L Lua state.
+/// @param[in] index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+void luainterop_getArgInt(lua_State* L, int index, int* ret);
+
+/// Utility to get a double arg off the Lua stack.
+/// @param[in] L Lua state.
+/// @param[in] index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+void luainterop_getArgDbl(lua_State* L, int index, double* ret);
+
+/// Utility to get a boolean arg off the Lua stack.
+/// @param[in] L Lua state.
+/// @param[in] index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+void luainterop_getArgBool(lua_State* L, int index, bool* ret);
+
+/// Utility to get a string arg off the Lua stack.
+/// @param[in] L Lua state.
+/// @param[in] index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+void luainterop_getArgStr(lua_State* L, int index, stringx_t* ret);
+
+
+#endif // LUAINTEROP_H

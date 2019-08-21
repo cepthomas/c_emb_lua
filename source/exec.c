@@ -176,7 +176,7 @@ status_t p_startScript()
 
     if (lstat == LUA_OK)
     {
-        // Init the script. This also starts execution.
+        // Init the script. This also starts blocking execution.
         lstat = lua_resume(p_LScript, 0, 0);
         p_scriptRunning = true;
 
@@ -188,13 +188,13 @@ status_t p_startScript()
         switch(lstat)
         {
             case LUA_YIELD:
-                // If it is long running, it will yield and get resumed in the timer callback.
+                // If script is long running, it will yield and get resumed in the timer callback.
                 // common_log(LOG_INFO, "LUA_YIELD.");
                 lstat = LUA_OK;
                 break;
 
             case LUA_OK:
-                // If it is not long running, it is complete now.
+                // If script is not long running, it is complete now.
                 p_scriptRunning = false;
                 common_log(LOG_INFO, "Finished script.");
                 break;
@@ -223,7 +223,7 @@ void p_timerHandler(void)
 
     // Crude responsiveness measurement.
     unsigned int t = common_getMsec();
-    if(t - p_lastTickTime > SYS_TICK_MSEC + SYS_TICK_MSEC / 5)
+    if(t - p_lastTickTime > 2 * SYS_TICK_MSEC) // was 1.2x
     {
         common_log(LOG_WARN, "Tick seems to have taken too long.");
     }
