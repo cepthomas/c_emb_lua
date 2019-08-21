@@ -87,13 +87,13 @@ const char* luainterop_xlatLuaStatus(int lstat)
     const char* lerr = "???";
     switch(lstat)
     {
-        case LUA_OK: lerr = "LUA_OK"; break;
-        case LUA_YIELD: lerr = "LUA_YIELD"; break;
-        case LUA_ERRRUN: lerr = "LUA_ERRRUN"; break;
+        case LUA_OK:        lerr = "LUA_OK";        break;
+        case LUA_YIELD:     lerr = "LUA_YIELD";     break;
+        case LUA_ERRRUN:    lerr = "LUA_ERRRUN";    break;
         case LUA_ERRSYNTAX: lerr = "LUA_ERRSYNTAX"; break;
-        case LUA_ERRMEM: lerr = "LUA_ERRMEM"; break;
-        case LUA_ERRGCMM: lerr = "LUA_ERRGCMM"; break;
-        case LUA_ERRERR: lerr = "LUA_ERRERR"; break;
+        case LUA_ERRMEM:    lerr = "LUA_ERRMEM";    break;
+        case LUA_ERRGCMM:   lerr = "LUA_ERRGCMM";   break;
+        case LUA_ERRERR:    lerr = "LUA_ERRERR";    break;
     }
     return lerr;
 }

@@ -13,7 +13,8 @@
 #include "exec.h"
 #include "common.h"
 #include "board.h"
-#include "demolib.h"
+#include "callluafromc.h"
+#include "callcfromlua.h"
 
 
 
@@ -165,7 +166,6 @@ status_t p_startScript()
     // Load libraries.
     luaL_openlibs(p_LMain);
     demolib_preload(p_LMain);
-
     demolib_loadContext(p_LMain, "Hey diddle diddle", 90909);
 
     // Set up a second Lua thread so we can background execute the script.

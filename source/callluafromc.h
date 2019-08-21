@@ -1,6 +1,6 @@
 
-#ifndef XLAT_H
-#define XLAT_H
+#ifndef CALLLUAFROMC_H
+#define CALLLUAFROMC_H
 
 #include "common.h"
 #include "luainterop.h"
@@ -13,14 +13,14 @@
 /// @return Status.
 void demolib_preload(lua_State* L);
 
-/// Create a table of context values.
+/// Create a table of context values available to the script. Optional.
 /// @param L Lua environment.
 /// @param s One arg.
 /// @param i Another arg.
 /// @return Result.
 void demolib_loadContext(lua_State* L, const char* s, int i);
 
-/// Call a lua function from C.
+/// Call a lua function from C. Demo calculation.
 /// @param L Lua environment.
 /// @param x One arg.
 /// @param y Another arg.
@@ -36,4 +36,4 @@ void demolib_luafunc_someCalc(lua_State* L, int x, int y, double* res);
 void demolib_handleInput(lua_State* L, unsigned int pin, bool value);
 
 
-#endif // XLAT_H
+#endif // CALLLUAFROMC_H
