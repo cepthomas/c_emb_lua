@@ -26,24 +26,24 @@ void c2lua_loadContext(lua_State* L, const char* s, int i)
 }
 
 //--------------------------------------------------------//
-void c2lua_someCalc(lua_State* L, int x, int y, double* res)
+void c2lua_calc(lua_State* L, int x, int y, double* res)
 {
-    //LOG(LOG_INFO, "c2lua_someCalc()");
+    //LOG(LOG_INFO, "c2lua_calc()");
 
     int lstat = 0;
 
     ///// Push the function to be called.
-    lstat = lua_getglobal(L, "somecalc");
+    lstat = lua_getglobal(L, "calc");
 
     ///// Push the arguments to the call.
-    lua_pushnumber(L, x);
-    lua_pushnumber(L, y);
+    lua_pushinteger(L, x);
+    lua_pushinteger(L, y);
 
     ///// Use lua_pcall to do the actual call.
     lstat = lua_pcall(L, 2, 1, 0);
     if (lstat >= LUA_ERRRUN)
     {
-        luainterop_luaError(L, "lua_pcall somecalc() failed");
+        luainterop_luaError(L, "lua_pcall calc() failed");
     }
 
     ///// Pop the results from the stack.
@@ -53,7 +53,7 @@ void c2lua_someCalc(lua_State* L, int x, int y, double* res)
     }
     else
     {
-        luainterop_luaError(L, "Bad somecalc() return value");
+        luainterop_luaError(L, "Bad calc() return value");
     }
 
     lua_pop(L, 1);  // pop returned value
@@ -68,8 +68,8 @@ void c2lua_handleInput(lua_State* L, unsigned int pin, bool value)
     lstat = lua_getglobal(L, "hinput");
 
     ///// Push the arguments to the call.
-    lua_pushnumber(L, pin);
-    lua_pushnumber(L, value);
+    lua_pushinteger(L, pin);
+    lua_pushboolean(L, value);
 
     ///// Use lua_pcall to do the actual call.
     lstat = lua_pcall(L, 2, 1, 0);

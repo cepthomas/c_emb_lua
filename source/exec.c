@@ -20,6 +20,8 @@
 
 #define SYS_TICK_MSEC 10
 #define SER_BUFF_LEN 128
+#define MAX_NUM_OPTS 4
+
 
 /// Helper macro.
 #define CHECKED_FUNC(stat, func, ...) \
@@ -178,7 +180,7 @@ status_t p_startScript()
 
         // A quick test. Do this after loading the file then running it.
         double d;
-        c2lua_someCalc(p_LScript, 11, 22, &d);
+        c2lua_calc(p_LScript, 11, 22, &d);
         // common_log(LOG_INFO, "c2lua_someCalc():%f", d);
 
         switch(lstat)
@@ -263,23 +265,82 @@ status_t p_processCommand(const char* sin)
 {
     status_t stat = STATUS_OK;
 
-    switch(sin[0])
+    // What are the options.
+    char* opts[MAX_NUM_OPTS];
+    memset(opts, 0x00, sizeof(opts));
+    int oind = 0;
+
+    // Make writable copy and tokenize it.
+    char cp[strlen(sin) + 1];
+    strcpy(cp, sin);
+    char* token = strtok(cp, " ");
+
+    while(token != NULL && oind < MAX_NUM_OPTS)
     {
-        case 'x':
-            p_stopScript();
-            break;
+        opts[oind++] = token;
+        token = strtok(NULL, " ");
+    }
 
-        case 'i':
-            // fake input port
-            break;
+    bool valid = false; // default
+    if(oind > 0)
+    {
+        switch(opts[0][0])
+        {
+            case 'x':
+                p_stopScript();
+                valid = true;
+                break;
 
-        case 'o':
-            // fake output port
-            break;
+            case 'c':
+                if(oind == 3)
+                {
+                    int x = -1;
+                    int y = -1;
+                    double res = -1;
+                    common_strtoi(opts[1], &x);
+                    common_strtoi(opts[2], &y);
+                    c2lua_calc(p_LScript, x, y, &res);
+                    common_log(LOG_INFO, "%d + %d = %g", x, y, res);
+                    valid = true;
+                }
+                break;
 
-        default:
-            common_log(LOG_WARN, "Invalid cmd:%s", sin);
-            break;
+            case 'r':
+                if(oind == 2)
+                {
+                    int pin = -1;
+                    bool value;
+                    common_strtoi(opts[1], &pin);
+                    board_readDig((unsigned int)pin, &value);
+                    common_log(LOG_INFO, "read pin:%d = %d", pin, value);
+                    valid = true;
+                }
+                break;
+
+            case 'w':
+                if(oind == 3)
+                {
+                    int pin = -1;
+                    bool value;
+                    common_strtoi(opts[1], &pin);
+                    value = opts[2][0] == 't';
+                    board_writeDig((unsigned int)pin, value);
+                    common_log(LOG_INFO, "write pin:%d = %d", pin, value);
+                    c2lua_handleInput(p_LScript, (unsigned int)pin, value);
+                    valid = true;
+                }
+                break;
+        }
+    }
+
+    if(!valid)
+    {
+        // usage
+        common_log(LOG_WARN, "Invalid cmd:%s, try one of these:", sin);
+        common_log(LOG_WARN, "exit: x");
+        common_log(LOG_WARN, "calculator: c num1 num2");
+        common_log(LOG_WARN, "read io pin: r pin");
+        common_log(LOG_WARN, "write io pin: w pin val");
     }
 
     return stat;

@@ -52,4 +52,10 @@ const char* common_xlatLogLevel(loglvl_t level);
 /// @return The string.
 const char* common_xlatStatus(status_t stat);
 
+/// Safe convert a string to integer.
+/// @param str The input.
+/// @param val The output.
+/// @return Valid conversion.
+bool common_strtoi(const char* str, int* val);
+
 #endif // COMMON_H

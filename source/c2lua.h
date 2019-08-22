@@ -21,7 +21,7 @@ void c2lua_loadContext(lua_State* L, const char* s, int i);
 /// @param y Another arg.
 /// @param res The answer.
 /// @return Result.
-void c2lua_someCalc(lua_State* L, int x, int y, double* res);
+void c2lua_calc(lua_State* L, int x, int y, double* res);
 
 /// Call a lua function from C. Process a digital input change.
 /// @param L Lua environment.

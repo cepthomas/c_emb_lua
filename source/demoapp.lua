@@ -17,22 +17,21 @@ function do_loop()
       counter = counter + 1
     end
  
-    ut.sleep(500)
+    ut.sleep(200)
 
     -- Be polite, give back.
     coroutine.yield()
   end
 end
 
-
--- Input has arrived from board.
+-- Pin input has arrived from board.
 function hinput (pin, value)
-    lua2c.log(0, "hinput on pin:%d - you really should do something useful with it...", pin)
+    lua2c.log(0, string.format("lua got input pin %d = %s ", pin, tostring(value)))
 end
 
--- For test/dev.
-function somecalc (x, y)
-  return (x^2 * math.sin(y)) / (1 - x)
+-- Dumb calculator, only does addition.
+function calc (x, y)
+  return (x + y)
 end
 
 

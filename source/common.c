@@ -78,5 +78,10 @@ const char* common_xlatStatus(status_t stat)
     return ss;
 }    
 
-//---------------- Private --------------------------//
-
+//--------------------------------------------------------//
+bool common_strtoi(const char* str, int* val)
+{
+    bool valid = false;
+    *val = atoi(str); // TODO not very safe...
+    return valid;
+}
