@@ -2,13 +2,12 @@
 Lua utilities.
 --]]
 
-local demolib = require "demolib"
+local lua2c = require "lua2c"
 
 -- Create the namespace/module.
 local M = {}
 
---- Creates a function that returns false until the arg is exceeded.
--- Some description, can be over several lines.
+-- Creates a function that returns false until the arg is exceeded.
 -- @param msec Number of milliseconds to wait.
 -- @return status Function that returns state of the timer.
 function M.delay_timer(msec)
@@ -16,26 +15,26 @@ function M.delay_timer(msec)
   local timeout = msec
 
   -- Grab the start time.
-  local start = demolib.msec()
+  local start = lua2c.msec()
   
   -- The accessor function.
-  local status = 
+  local status =
     function()
       -- Are we there yet?
-      return (demolib.msec() - start) > timeout
+      return (lua2c.msec() - start) > timeout
     end  
       
   return { status = status }      
 end
 
---- Blocking wait.
+-- Blocking wait.
 -- @param time Sleep time in msec.
 function M.sleep(time)
   local timer = M.delay_timer(time)
   while not timer.status() do coroutine.yield() end
 end
 
---- Concat the contents of the parameter list, separated by the string delimiter.
+-- Concat the contents of the parameter list, separated by the string delimiter.
 -- Example: strjoin(", ", {"Anna", "Bob", "Charlie", "Dolores"})
 -- Borrowed from http://lua-users.org/wiki/SplitJoin.
 -- @param delimiter Delimiter.
@@ -53,10 +52,10 @@ function M.strjoin(delimiter, list)
   return string
 end
 
---- Split text into a list.
+-- Split text into a list.
 -- Consisting of the strings in text, separated by strings matching delimiter (which may be a pattern). 
---  Example: strsplit(",%s*", "Anna, Bob, Charlie,Dolores")
---  Borrowed from http://lua-users.org/wiki/SplitJoin.
+-- Example: strsplit(",%s*", "Anna, Bob, Charlie,Dolores")
+-- Borrowed from http://lua-users.org/wiki/SplitJoin.
 -- @param delimiter Delimiter.
 -- @param text The string to split.
 -- @return list Split input.
@@ -79,7 +78,7 @@ function M.strsplit(delimiter, text)
   return list
 end
 
---- Trims whitespace from both ends of a string.
+-- Trims whitespace from both ends of a string.
 -- Borrowed from http://lua-users.org/wiki/SplitJoin.
 -- @param s The string to clean up.
 -- @return string Cleaned up input string.
@@ -87,7 +86,7 @@ function M.strtrim(s)
   return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
 
---- Generate a random number.
+-- Generate a random number.
 -- @param rmin Minimum number value.
 -- @param rmax Maximum number value.
 -- @return next Function that returns number.
@@ -110,7 +109,7 @@ function M.numb_rand(rmin, rmax)
   end
 end
 
------------------------------------------------------------------------------
+----------------------------------------------------------------------------
 -- Module initialization.
 
 -- Seed the randomizer.

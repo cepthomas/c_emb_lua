@@ -13,8 +13,8 @@
 #include "exec.h"
 #include "common.h"
 #include "board.h"
-#include "callluafromc.h"
-#include "callcfromlua.h"
+#include "c2lua.h"
+#include "lua2c.h"
 
 
 
@@ -165,8 +165,8 @@ status_t p_startScript()
 
     // Load libraries.
     luaL_openlibs(p_LMain);
-    demolib_preload(p_LMain);
-    demolib_loadContext(p_LMain, "Hey diddle diddle", 90909);
+    lua2c_preload(p_LMain);
+    c2lua_loadContext(p_LMain, "Hey diddle diddle", 90909);
 
     // Set up a second Lua thread so we can background execute the script.
     p_LScript = lua_newthread(p_LMain);
@@ -182,8 +182,8 @@ status_t p_startScript()
 
         // A quick test. Do this after loading the file then running it.
         double d;
-        demolib_luafunc_someCalc(p_LScript, 11, 22, &d);
-        // common_log(LOG_INFO, "demolib_luafunc_someCalc():%f", d);
+        c2lua_someCalc(p_LScript, 11, 22, &d);
+        // common_log(LOG_INFO, "c2lua_someCalc():%f", d);
 
         switch(lstat)
         {
@@ -259,7 +259,7 @@ void p_timerHandler(void)
 //---------------------------------------------------//
 void p_digInputHandler(unsigned int which, bool value)
 {
-    demolib_handleInput(p_LScript, which, value);
+    c2lua_handleInput(p_LScript, which, value);
 }
 
 //---------------------------------------------------//

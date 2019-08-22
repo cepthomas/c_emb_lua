@@ -34,6 +34,7 @@ static char p_rxBuff[SER_BUFF_LEN];
 /// Simulated digital IO pins.
 static bool p_digPinsSim[NUM_DIG_PINS];
 
+/// Windows periodic timer.
 #ifdef WIN32
 static HANDLE p_winHandle;
 static VOID CALLBACK p_winTimerHandler(PVOID, BOOLEAN);

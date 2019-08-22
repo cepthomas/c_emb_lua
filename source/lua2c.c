@@ -1,11 +1,16 @@
 
 #include "stringx.h"
-#include "callcfromlua.h"
+#include "lua2c.h"
 #include "board.h"
 
 
+// Interface to call C functions from lua.
+
+
 //--------------------------------------------------------//
-int p_luafunc_log(lua_State* L)
+//    lua2c.log(0, "hinput on pin:%d - you really should do something useful with it...", pin)
+
+int p_lua2c_log(lua_State* L)
 {
     ///// Get function arguments.
     int level = 0;
@@ -32,7 +37,9 @@ int p_luafunc_log(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_luafunc_msec(lua_State* L)
+//  local start = lua2c.msec()
+
+int p_lua2c_msec(lua_State* L)
 {
     ///// Get function arguments.
     // none
@@ -46,7 +53,7 @@ int p_luafunc_msec(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_luafunc_digout(lua_State* L)
+int p_lua2c_digout(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
@@ -62,7 +69,7 @@ int p_luafunc_digout(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_luafunc_digin(lua_State* L)
+int p_lua2c_digin(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
@@ -80,12 +87,13 @@ int p_luafunc_digin(lua_State* L)
 
 //--------------------------------------------------------//
 /// List of functions in the module.
-static const luaL_Reg demolib[] =
+static const luaL_Reg lua2clib[] =
 {
-    { "log",    p_luafunc_log },
-    { "msec",   p_luafunc_msec },
-    { "digout", p_luafunc_digout },
-    { "digin",  p_luafunc_digin },
+    //{ lua func name, c func name }
+    { "log",    p_lua2c_log },
+    { "msec",   p_lua2c_msec },
+    { "digout", p_lua2c_digout },
+    { "digin",  p_lua2c_digin },
     { NULL, NULL }
 };
 
@@ -93,19 +101,19 @@ static const luaL_Reg demolib[] =
 /// Called by system to actually load the lib.
 /// @param[in] L Lua state.
 /// @return Status = 1 if ok.
-int p_open_demolib (lua_State *L)
+int p_open_lua2c (lua_State *L)
 {
     // Register our C <-> Lua functions.
-    //LOG(LOG_INFO, "p_open_demolib()");
-
-    luaL_newlib(L, demolib);
+    luaL_newlib(L, lua2clib);
 
     return 1;
 }
 
 //--------------------------------------------------------//
-void demolib_preload(lua_State* L)
+/// Identify the system callback to load the lib.
+/// \param L
+void lua2c_preload(lua_State* L)
 {
-    //LOG(LOG_INFO, "demolib_preload()");
-    luaL_requiref(L, "demolib", p_open_demolib, 1);
+    //LOG(LOG_INFO, "lua2c_preload()");
+    luaL_requiref(L, "lua2c", p_open_lua2c, 1);
 }

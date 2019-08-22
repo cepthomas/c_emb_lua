@@ -6,19 +6,14 @@
 #include "luainterop.h"
 
 
-/// @file Provides an example app specific lua lib implemented in C.
-
-/// Setup to load the libs.
-/// @param L Lua environment.
-/// @return Status.
-void demolib_preload(lua_State* L);
+/// @file Interface to call lua functions from C.
 
 /// Create a table of context values available to the script. Optional.
 /// @param L Lua environment.
 /// @param s One arg.
 /// @param i Another arg.
 /// @return Result.
-void demolib_loadContext(lua_State* L, const char* s, int i);
+void c2lua_loadContext(lua_State* L, const char* s, int i);
 
 /// Call a lua function from C. Demo calculation.
 /// @param L Lua environment.
@@ -26,14 +21,14 @@ void demolib_loadContext(lua_State* L, const char* s, int i);
 /// @param y Another arg.
 /// @param res The answer.
 /// @return Result.
-void demolib_luafunc_someCalc(lua_State* L, int x, int y, double* res);
+void c2lua_someCalc(lua_State* L, int x, int y, double* res);
 
 /// Call a lua function from C. Process a digital input change.
 /// @param L Lua environment.
 /// @param pin The input.
 /// @param value True/false.
 /// @return Result.
-void demolib_handleInput(lua_State* L, unsigned int pin, bool value);
+void c2lua_handleInput(lua_State* L, unsigned int pin, bool value);
 
 
 #endif // CALLLUAFROMC_H

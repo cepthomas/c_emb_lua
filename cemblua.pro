@@ -10,37 +10,37 @@ SRC_PATH = "./source"
 LUA_PATH = "./lua-5.3.5/src"
 
 # Copy lua scripts.
-copydata.commands = $(COPY_DIR) $$PWD/source/*.lua $$OUT_PWD
-first.depends = $(first) copydata
-export(first.depends)
-export(copydata.commands)
-QMAKE_EXTRA_TARGETS += first copydata
+# copydata.commands = $(COPY_DIR) $$PWD/source/*.lua $$OUT_PWD
+# first.depends = $(first) copydata
+# export(first.depends)
+# export(copydata.commands)
+# QMAKE_EXTRA_TARGETS += first copydata
 
 
 INCLUDEPATH += \
     $$SRC_PATH \
-    $$LUA_PATH \
-    $$CBOT_PATH
+    $$LUA_PATH
+
 
 ### Main app ###
 SOURCES += \
-    $$SRC_PATH/stringx.c \
     $$SRC_PATH/main.c \
     $$SRC_PATH/common.c \
+    $$SRC_PATH/stringx.c \
     $$SRC_PATH/exec.c \
     $$SRC_PATH/board.c \
     $$SRC_PATH/luainterop.c \
-    $$SRC_PATH/callluafromc.c \
-    $$SRC_PATH/callcfromlua.c
+    $$SRC_PATH/c2lua.c \
+    $$SRC_PATH/lua2c.c
 
 HEADERS += \
-    $$SRC_PATH/stringx.h \
     $$SRC_PATH/common.h \
+    $$SRC_PATH/stringx.h \
     $$SRC_PATH/exec.h \
     $$SRC_PATH/board.h \
     $$SRC_PATH/luainterop.h \
-    $$SRC_PATH/callluafromc.h \
-    $$SRC_PATH/callcfromlua.h
+    $$SRC_PATH/c2lua.h \
+    $$SRC_PATH/lua2c.h
 
 
 ### Lua ###

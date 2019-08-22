@@ -1,13 +1,16 @@
 
 #include "stringx.h"
-#include "callluafromc.h"
+#include "c2lua.h"
 #include "board.h"
+
+// Interface to call lua functions from C.
 
 
 //--------------------------------------------------------//
-void demolib_loadContext(lua_State* L, const char* s, int i)
+// Internal function to fill context table. TODO make a generic version?
+void c2lua_loadContext(lua_State* L, const char* s, int i)
 {
-    //LOG(LOG_INFO, "demolib_loadContext()");
+    //LOG(LOG_INFO, "c2lua_loadContext()");
 
     ///// Pass the context vals to the Lua world in a table named "script_context".
     lua_newtable(L); // Creates a new empty table and pushes it onto the stack.
@@ -24,9 +27,9 @@ void demolib_loadContext(lua_State* L, const char* s, int i)
 }
 
 //--------------------------------------------------------//
-void demolib_luafunc_someCalc(lua_State* L, int x, int y, double* res)
+void c2lua_someCalc(lua_State* L, int x, int y, double* res)
 {
-    //LOG(LOG_INFO, "demolib_luafunc_someCalc()");
+    //LOG(LOG_INFO, "c2lua_someCalc()");
 
     int lstat = 0;
 
@@ -58,17 +61,19 @@ void demolib_luafunc_someCalc(lua_State* L, int x, int y, double* res)
 }
 
 //--------------------------------------------------------//
-void demolib_handleInput(lua_State* L, unsigned int pin, bool value)
+void c2lua_handleInput(lua_State* L, unsigned int pin, bool value)
 {
+    int lstat = 0;
+
     ///// Push the function to be called.
-    lua_getglobal(L, "hinput");
+    lstat = lua_getglobal(L, "hinput");
 
     ///// Push the arguments to the call.
     lua_pushnumber(L, pin);
     lua_pushnumber(L, value);
 
     ///// Use lua_pcall to do the actual call.
-    int lstat = lua_pcall(L, 2, 1, 0);
+    lstat = lua_pcall(L, 2, 1, 0);
 
     if (lstat >= LUA_ERRRUN)
     {
