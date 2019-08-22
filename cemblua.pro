@@ -26,7 +26,6 @@ INCLUDEPATH += \
 SOURCES += \
     $$SRC_PATH/main.c \
     $$SRC_PATH/common.c \
-    $$SRC_PATH/stringx.c \
     $$SRC_PATH/exec.c \
     $$SRC_PATH/board.c \
     $$SRC_PATH/luainterop.c \
@@ -35,7 +34,6 @@ SOURCES += \
 
 HEADERS += \
     $$SRC_PATH/common.h \
-    $$SRC_PATH/stringx.h \
     $$SRC_PATH/exec.h \
     $$SRC_PATH/board.h \
     $$SRC_PATH/luainterop.h \

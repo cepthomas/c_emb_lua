@@ -69,11 +69,11 @@ void luainterop_getArgBool(lua_State* L, int index, bool* ret)
 }
 
 //--------------------------------------------------------//
-void luainterop_getArgStr(lua_State* L, int index, stringx_t* ret)
+void luainterop_getArgStr(lua_State* L, int index, const char** ret)
 {
     if(lua_isstring(L, index) > 0)
     {
-        stringx_set(ret, lua_tostring(L, index));
+        *ret = lua_tostring(L, index);
     }
     else
     {

@@ -1,5 +1,4 @@
 
-#include "stringx.h"
 #include "c2lua.h"
 #include "board.h"
 

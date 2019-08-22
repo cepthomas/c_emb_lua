@@ -8,8 +8,6 @@
 #define sleep(t) Sleep(t)
 #endif
 
-#include "stringx.h"
-
 #include "exec.h"
 #include "common.h"
 #include "board.h"
@@ -65,7 +63,7 @@ static void p_digInputHandler(unsigned int which, bool value);
 /// @brief Process for all commands from clients.
 /// @param[in] sin The arbitrary command and args.
 /// @return status
-status_t p_processCommand(stringx_t* sin);
+status_t p_processCommand(const char* sin);
 
 /// @brief Starts the script running.
 /// @return status
@@ -131,9 +129,7 @@ status_t exec_run(void)
 
         if(strlen(p_rxBuf) > 0)
         {
-            stringx_t* cmd = stringx_create(p_rxBuf);
-            stat = p_processCommand(cmd);
-            stringx_destroy(cmd);
+            stat = p_processCommand(p_rxBuf);
         }
 
         //This doesn't like running in win debugger.
@@ -263,17 +259,27 @@ void p_digInputHandler(unsigned int which, bool value)
 }
 
 //---------------------------------------------------//
-status_t p_processCommand(stringx_t* sin)
+status_t p_processCommand(const char* sin)
 {
     status_t stat = STATUS_OK;
 
-    if(stringx_starts(sin, "stop", true))
+    switch(sin[0])
     {
-        p_stopScript();
-    }
-    else
-    {
-        common_log(LOG_WARN, "Invalid cmd:%s", stringx_content(sin));
+        case 'x':
+            p_stopScript();
+            break;
+
+        case 'i':
+            // fake input port
+            break;
+
+        case 'o':
+            // fake output port
+            break;
+
+        default:
+            common_log(LOG_WARN, "Invalid cmd:%s", sin);
+            break;
     }
 
     return stat;

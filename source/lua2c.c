@@ -1,5 +1,4 @@
 
-#include "stringx.h"
 #include "lua2c.h"
 #include "board.h"
 
@@ -14,9 +13,9 @@ int p_lua2c_log(lua_State* L)
 {
     ///// Get function arguments.
     int level = 0;
-    stringx_t* info = stringx_create(NULL);
+    const char* info = NULL;
     luainterop_getArgInt(L, 1, &level);
-    luainterop_getArgStr(L, 2, info);
+    luainterop_getArgStr(L, 2, &info);
 
     ///// Do the work.
     // Convert log level.
@@ -29,8 +28,7 @@ int p_lua2c_log(lua_State* L)
         default: llevel = LOG_ERROR; break;
     }
 
-    common_log(llevel, stringx_content(info));
-    stringx_destroy(info);
+    common_log(llevel, info);
 
     ///// Push return values.
     return 0; // number of results

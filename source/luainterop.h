@@ -9,7 +9,6 @@
 #include "lauxlib.h"
 
 #include "common.h"
-#include "stringx.h"
 
 
 /// Format a readable string from the argument.
@@ -48,7 +47,7 @@ void luainterop_getArgBool(lua_State* L, int index, bool* ret);
 /// @param[in] L Lua state.
 /// @param[in] index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-void luainterop_getArgStr(lua_State* L, int index, stringx_t* ret);
+void luainterop_getArgStr(lua_State* L, int index, const char** ret);
 
 
 #endif // LUAINTEROP_H

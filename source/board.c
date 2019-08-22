@@ -9,7 +9,6 @@
 #endif
 
 #include "board.h"
-#include "stringx.h"
 
 
 //---------------- Private ------------------------------//
