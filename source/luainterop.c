@@ -21,7 +21,6 @@ void luainterop_luaError(lua_State* L, const char* format, ...)
     vsnprintf(p_buff, sizeof(p_buff), format, args);
 
     // Dump stacktrace.
-    // https://stackoverflow.com/questions/12256455/print-stacktrace-from-c-code-with-embedded-lua
     luaL_traceback(L, L, NULL, 1);
     printf("%s\n", lua_tostring(L, -1));
 

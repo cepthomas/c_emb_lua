@@ -6,11 +6,8 @@
 
 
 //--------------------------------------------------------//
-// Internal function to fill context table. TODO make a generic version?
 void c2lua_loadContext(lua_State* L, const char* s, int i)
 {
-    //LOG(LOG_INFO, "c2lua_loadContext()");
-
     ///// Pass the context vals to the Lua world in a table named "script_context".
     lua_newtable(L); // Creates a new empty table and pushes it onto the stack.
 
@@ -28,8 +25,6 @@ void c2lua_loadContext(lua_State* L, const char* s, int i)
 //--------------------------------------------------------//
 void c2lua_calc(lua_State* L, int x, int y, double* res)
 {
-    //LOG(LOG_INFO, "c2lua_calc()");
-
     int lstat = 0;
 
     ///// Push the function to be called.

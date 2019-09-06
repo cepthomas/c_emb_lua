@@ -7,7 +7,6 @@
 
 
 //--------------------------------------------------------//
-//    lua2c.log(0, "hinput on pin:%d - you really should do something useful with it...", pin)
 
 int p_lua2c_log(lua_State* L)
 {
@@ -87,7 +86,7 @@ int p_lua2c_digin(lua_State* L)
 /// List of functions in the module.
 static const luaL_Reg lua2clib[] =
 {
-    //{ lua func name, c func name }
+//  { lua func, c func }
     { "log",    p_lua2c_log },
     { "msec",   p_lua2c_msec },
     { "digout", p_lua2c_digout },
@@ -112,6 +111,5 @@ int p_open_lua2c (lua_State *L)
 /// \param L
 void lua2c_preload(lua_State* L)
 {
-    //LOG(LOG_INFO, "lua2c_preload()");
     luaL_requiref(L, "lua2c", p_open_lua2c, 1);
 }

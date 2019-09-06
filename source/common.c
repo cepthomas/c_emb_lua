@@ -47,7 +47,7 @@ status_t common_log(loglvl_t level, const char* format, ...)
 unsigned int common_getMsec()
 {
     uint64_t now = board_getCurrentUsec();
-    unsigned int msec = abs((unsigned int)((now - p_startTime) / 1000));
+    unsigned int msec = (unsigned int)abs((int)((now - p_startTime) / 1000));
     return msec;
 }
 
@@ -74,6 +74,7 @@ const char* common_xlatStatus(status_t stat)
         case STATUS_WARN:  ss = "STATUS_WARN"; break;
         case STATUS_ERROR: ss = "STATUS_ERROR"; break;
         case STATUS_FATAL: ss = "STATUS_FATAL"; break;
+        case STATUS_EXIT:  ss = "STATUS_EXIT"; break;
     }
     return ss;
 }    
@@ -81,7 +82,21 @@ const char* common_xlatStatus(status_t stat)
 //--------------------------------------------------------//
 bool common_strtoi(const char* str, int* val)
 {
-    bool valid = false;
-    *val = atoi(str); // TODO not very safe...
+    bool valid = true;
+    char* p;
+
+    errno = 0;
+    *val = strtol(str, &p, 10);
+    if(errno == ERANGE)
+    {
+        // Mag is too large.
+        valid = false;
+    }
+    else if(p == str)
+    {
+        // Bad string.
+        valid = false;
+    }
+
     return valid;
 }

@@ -139,15 +139,13 @@ status_t exec_run(void)
     }
 
     // Done, close up shop.
+    common_log(LOG_INFO, "Goodbye - come back soon!");
     board_enbInterrupts(false);
+
     p_stopScript(); // just in case
-
-    lua_close(p_LScript);
-    p_LScript = NULL;
     lua_close(p_LMain);
-    p_LMain = NULL;
 
-    return stat;
+    return stat == STATUS_EXIT ? 0 : stat;
 }
 
 //---------------- Private --------------------------//
@@ -289,6 +287,7 @@ status_t p_processCommand(const char* sin)
             case 'x':
                 p_stopScript();
                 valid = true;
+                stat = STATUS_EXIT;
                 break;
 
             case 'c':

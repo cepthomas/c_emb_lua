@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <float.h>
+#include <errno.h>
+#include <math.h>
 
 
 /// General status value.
@@ -17,7 +19,8 @@ typedef enum
     STATUS_OK = 0,
     STATUS_WARN,
     STATUS_ERROR,
-    STATUS_FATAL
+    STATUS_FATAL,
+    STATUS_EXIT
 } status_t;
 
 /// Log levels.
