@@ -17,7 +17,7 @@ int p_lua2c_log(lua_State* L)
     luainterop_getArgStr(L, 2, &info);
 
     ///// Do the work.
-    // Convert log level.
+    // Convert log level from lua to C. Could be a fancy/smart enum in the future.
     loglvl_t llevel;
 
     switch(level)

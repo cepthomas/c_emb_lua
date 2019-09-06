@@ -11,22 +11,7 @@
 
 //---------------- Public Implementation -------------//
 
-//--------------------------------------------------------//
-void luainterop_luaError(lua_State* L, const char* format, ...)
-{
-    static char p_buff[100];
-
-    va_list args;
-    va_start(args, format);
-    vsnprintf(p_buff, sizeof(p_buff), format, args);
-
-    // Dump stacktrace.
-    luaL_traceback(L, L, NULL, 1);
-    printf("%s\n", lua_tostring(L, -1));
-
-    lua_pushstring(L, p_buff);
-    lua_error(L); // never returns
-}
+//---------------- Getters ---------------------------//
 
 //--------------------------------------------------------//
 void luainterop_getArgInt(lua_State* L, int index, int* ret)
@@ -78,6 +63,26 @@ void luainterop_getArgStr(lua_State* L, int index, const char** ret)
     {
         luainterop_luaError(L, "Invalid string argument at index %d", index);
     }
+}
+
+
+//---------------- Utilities ---------------------------//
+
+//--------------------------------------------------------//
+void luainterop_luaError(lua_State* L, const char* format, ...)
+{
+    static char p_buff[100];
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(p_buff, sizeof(p_buff), format, args);
+
+    // Dump stacktrace.
+    luaL_traceback(L, L, NULL, 1);
+    printf("%s\n", lua_tostring(L, -1));
+
+    lua_pushstring(L, p_buff);
+    lua_error(L); // never returns
 }
 
 //--------------------------------------------------------//

@@ -162,7 +162,7 @@ status_t p_startScript()
     // Load libraries.
     luaL_openlibs(p_LMain);
     lua2c_preload(p_LMain);
-    c2lua_loadContext(p_LMain, "Hey diddle diddle", 90909);
+    c2lua_context(p_LMain, "Hey diddle diddle", 90909);
 
     // Set up a second Lua thread so we can background execute the script.
     p_LScript = lua_newthread(p_LMain);

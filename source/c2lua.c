@@ -6,10 +6,10 @@
 
 
 //--------------------------------------------------------//
-void c2lua_loadContext(lua_State* L, const char* s, int i)
+void c2lua_context(lua_State* L, const char* s, int i)
 {
-    ///// Pass the context vals to the Lua world in a table named "script_context".
-    lua_newtable(L); // Creates a new empty table and pushes it onto the stack.
+    // Create a new empty table and pushes it onto the stack.
+    lua_newtable(L);
 
     lua_pushstring(L, "script_string");
     lua_pushstring(L, s);
@@ -19,7 +19,7 @@ void c2lua_loadContext(lua_State* L, const char* s, int i)
     lua_pushinteger(L, i);
     lua_settable(L, -3);
 
-    lua_setglobal(L, "script_context"); // Pops a value from the stack and sets it as the new value of global name.
+    lua_setglobal(L, "script_context");
 }
 
 //--------------------------------------------------------//

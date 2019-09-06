@@ -1,6 +1,6 @@
 
 TEMPLATE = app
-CONFIG += console strict_c
+CONFIG += console c99 strict_c
 CONFIG -= app_bundle qt c11 gui
 # Keep it honest - treat warnings as errors.
 QMAKE_CFLAGS += -Werror
