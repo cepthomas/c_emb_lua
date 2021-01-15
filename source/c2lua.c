@@ -2,8 +2,6 @@
 #include "c2lua.h"
 #include "board.h"
 
-// Interface to call lua functions from C.
-
 
 //--------------------------------------------------------//
 void c2lua_context(lua_State* L, const char* s, int i)

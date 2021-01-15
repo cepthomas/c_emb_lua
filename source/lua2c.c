@@ -3,9 +3,6 @@
 #include "board.h"
 
 
-// Interface to call C functions from lua.
-
-
 //--------------------------------------------------------//
 
 int p_lua2c_log(lua_State* L)

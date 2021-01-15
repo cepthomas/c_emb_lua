@@ -8,10 +8,10 @@
             "name": "cbot",
             "includePath": [
                 "${workspaceFolder}/source",
-                "${workspaceFolder}/test"
+                "${workspaceFolder}/lua-5.3.5/src"
             ],
             "defines": [
-                "HAVE_LIST"
+                "abc"
             ],
             "compilerPath": "${gccPath}/g++",
             //"cStandard": "c99",

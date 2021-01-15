@@ -11,8 +11,8 @@
 #include "exec.h"
 #include "common.h"
 #include "board.h"
-#include "c2lua.h"
 #include "lua2c.h"
+#include "c2lua.h"
 
 
 
