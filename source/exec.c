@@ -23,16 +23,6 @@
 #define MAX_NUM_OPTS 4
 
 
-/// Helper macro.
-#define CHECKED_FUNC(stat, func, ...) \
-{ \
-    stat = func(__VA_ARGS__); \
-    if(stat != STATUS_OK) \
-    { \
-        common_log(LOG_ERROR, #func); \
-    } \
-}
-
 /// The main Lua thread.
 static lua_State* p_LMain;
 

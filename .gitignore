@@ -1,4 +1,1 @@
-/*.sublime*
-/source/*.user
-/test/*.user
-/*.user
+/build

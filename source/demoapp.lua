@@ -1,5 +1,5 @@
 --[[
-Lua script for a simplistic multithreaded/coroutine application.
+Lua script for a simplistic multithreaded/coroutine application. Uses lua2c.
 --]]
 
 local lua2c = require "lua2c"
