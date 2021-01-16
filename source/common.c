@@ -54,29 +54,31 @@ unsigned int common_getMsec()
 //--------------------------------------------------------//
 const char* common_xlatLogLevel(loglvl_t level)
 {
-    const char* ll = "???";
+    static char buff[20];
     switch(level)
     {
-        case LOG_INFO:  ll = "INF"; break;
-        case LOG_WARN:  ll = "WRN"; break;
-        case LOG_ERROR: ll = "ERR"; break;
+        case LOG_INFO:  strcpy(buff, "INF"); break;
+        case LOG_WARN:  strcpy(buff, "WRN"); break;
+        case LOG_ERROR: strcpy(buff, "ERR"); break;
+        default: snprintf(buff, 20, "%d", level); break;
     }
-    return ll;
+    return buff;
 }    
 
 //--------------------------------------------------------//
 const char* common_xlatStatus(status_t stat)
 {
-    const char* ss = "???";
+    static char buff[20];
     switch(stat)
     {
-        case STATUS_OK:    ss = "STATUS_OK"; break;
-        case STATUS_WARN:  ss = "STATUS_WARN"; break;
-        case STATUS_ERROR: ss = "STATUS_ERROR"; break;
-        case STATUS_FATAL: ss = "STATUS_FATAL"; break;
-        case STATUS_EXIT:  ss = "STATUS_EXIT"; break;
+        case STATUS_OK:    strcpy(buff, "STATUS_OK"); break;
+        case STATUS_WARN:  strcpy(buff, "STATUS_WARN"); break;
+        case STATUS_ERROR: strcpy(buff, "STATUS_ERROR"); break;
+        case STATUS_FATAL: strcpy(buff, "STATUS_FATAL"); break;
+        case STATUS_EXIT:  strcpy(buff, "STATUS_EXIT"); break;
+        default: snprintf(buff, 20, "%d", stat); break;
     }
-    return ss;
+    return buff;
 }    
 
 //--------------------------------------------------------//

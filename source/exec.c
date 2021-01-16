@@ -8,16 +8,18 @@
 #define sleep(t) Sleep(t)
 #endif
 
-#include "exec.h"
+
 #include "common.h"
 #include "board.h"
-#include "lua2c.h"
-#include "c2lua.h"
+#include "luatoc.h"
+#include "ctolua.h"
+#include "exec.h"
 
 
 
 //---------------- Private --------------------------//
 
+// Note that Windows default clock is 64 times per second = 15.625 msec.
 #define SYS_TICK_MSEC 10
 #define SER_BUFF_LEN 128
 #define MAX_NUM_OPTS 4
@@ -55,11 +57,12 @@ static void p_digInputHandler(unsigned int which, bool value);
 /// @brief Process for all commands from clients.
 /// @param[in] sin The arbitrary command and args.
 /// @return status
-status_t p_processCommand(const char* sin);
+static status_t p_processCommand(const char* sin);
 
 /// @brief Starts the script running.
+/// @param[in] fn Script filename.
 /// @return status
-static status_t p_startScript(void);
+static status_t p_startScript(const char* fn);
 
 /// @brief Stop the currently running script.
 /// @return status
@@ -104,7 +107,7 @@ status_t exec_init(void)
 }
 
 //---------------------------------------------------//
-status_t exec_run(void)
+status_t exec_run(const char* fn)
 {
     status_t stat = STATUS_OK;
 
@@ -112,7 +115,7 @@ status_t exec_run(void)
     board_enbInterrupts(true);
     p_loopRunning = true;
 
-    p_startScript();
+    p_startScript(fn);
 
     // Forever loop.
     while(p_loopRunning && stat == STATUS_OK)
@@ -141,24 +144,22 @@ status_t exec_run(void)
 //---------------- Private --------------------------//
 
 //---------------------------------------------------//
-status_t p_startScript()
+status_t p_startScript(const char* fn)
 {
-//    status_t stat = STATUS_OK;
-
     int lstat = LUA_OK;
 
     // Do the real work - run the Lua script.
 
     // Load libraries.
     luaL_openlibs(p_LMain);
-    lua2c_preload(p_LMain);
-    c2lua_context(p_LMain, "Hey diddle diddle", 90909);
+    luatoc_preload(p_LMain);
+    ctolua_context(p_LMain, "Hey diddle diddle", 90909);
 
     // Set up a second Lua thread so we can background execute the script.
     p_LScript = lua_newthread(p_LMain);
 
     // Load the script/file we are going to run.
-    lstat = luaL_loadfile(p_LScript, "demoapp.lua");
+    lstat = luaL_loadfile(p_LScript, fn);
 
     if (lstat == LUA_OK)
     {
@@ -168,8 +169,8 @@ status_t p_startScript()
 
         // A quick test. Do this after loading the file then running it.
         double d;
-        c2lua_calc(p_LScript, 11, 22, &d);
-        // common_log(LOG_INFO, "c2lua_someCalc():%f", d);
+        ctolua_calc(p_LScript, 11, 22, &d);
+        // common_log(LOG_INFO, "ctolua_someCalc():%f", d);
 
         switch(lstat)
         {
@@ -208,10 +209,10 @@ void p_timerHandler(void)
     p_tick++;
 
     // Crude responsiveness measurement.
-    unsigned int t = common_getMsec();
-    if(t - p_lastTickTime > 2 * SYS_TICK_MSEC) // was 1.2x
+    unsigned int t = common_getMsec(); // can range from 15 to ~ 32
+    if(t - p_lastTickTime > 2 * SYS_TICK_MSEC)
     {
-        common_log(LOG_WARN, "Tick seems to have taken too long.");
+        //common_log(LOG_WARN, "Tick seems to have taken too long:%d", t - p_lastTickTime);
     }
     p_lastTickTime = t;
 
@@ -245,7 +246,7 @@ void p_timerHandler(void)
 //---------------------------------------------------//
 void p_digInputHandler(unsigned int which, bool value)
 {
-    c2lua_handleInput(p_LScript, which, value);
+    ctolua_handleInput(p_LScript, which, value);
 }
 
 //---------------------------------------------------//
@@ -288,7 +289,7 @@ status_t p_processCommand(const char* sin)
                     double res = -1;
                     common_strtoi(opts[1], &x);
                     common_strtoi(opts[2], &y);
-                    c2lua_calc(p_LScript, x, y, &res);
+                    ctolua_calc(p_LScript, x, y, &res);
                     common_log(LOG_INFO, "%d + %d = %g", x, y, res);
                     valid = true;
                 }
@@ -315,7 +316,7 @@ status_t p_processCommand(const char* sin)
                     value = opts[2][0] == 't';
                     board_writeDig((unsigned int)pin, value);
                     common_log(LOG_INFO, "write pin:%d = %d", pin, value);
-                    c2lua_handleInput(p_LScript, (unsigned int)pin, value);
+                    ctolua_handleInput(p_LScript, (unsigned int)pin, value);
                     valid = true;
                 }
                 break;
@@ -326,10 +327,10 @@ status_t p_processCommand(const char* sin)
     {
         // usage
         common_log(LOG_WARN, "Invalid cmd:%s, try one of these:", sin);
-        common_log(LOG_WARN, "exit: x");
-        common_log(LOG_WARN, "calculator: c num1 num2");
-        common_log(LOG_WARN, "read io pin: r pin");
-        common_log(LOG_WARN, "write io pin: w pin val");
+        common_log(LOG_WARN, "  exit: x");
+        common_log(LOG_WARN, "  calculator: c num1 num2");
+        common_log(LOG_WARN, "  read io pin: r pin");
+        common_log(LOG_WARN, "  write io pin: w pin val");
     }
 
     return stat;
@@ -352,20 +353,22 @@ status_t p_processExecError(int lstat)
 
     p_scriptRunning = false;
 
-    const char* lerr = "???";
+    static char buff[20];
     switch(lstat)
     {
-        case LUA_OK: lerr = "LUA_OK"; break;
-        case LUA_YIELD: lerr = "LUA_YIELD"; break;
-        case LUA_ERRRUN: lerr = "LUA_ERRRUN"; break;
-        case LUA_ERRSYNTAX: lerr = "LUA_ERRSYNTAX"; break;
-        case LUA_ERRMEM: lerr = "LUA_ERRMEM"; break;
-        case LUA_ERRGCMM: lerr = "LUA_ERRGCMM"; break;
-        case LUA_ERRERR: lerr = "LUA_ERRERR"; break;
+
+        case LUA_OK:        strcpy(buff, "LUA_OK"); break;
+        case LUA_YIELD:     strcpy(buff, "LUA_YIELD"); break;
+        case LUA_ERRRUN:    strcpy(buff, "LUA_ERRRUN"); break;
+        case LUA_ERRSYNTAX: strcpy(buff, "LUA_ERRSYNTAX"); break;
+        case LUA_ERRMEM:    strcpy(buff, "LUA_ERRMEM"); break;
+        case LUA_ERRGCMM:   strcpy(buff, "LUA_ERRGCMM"); break;
+        case LUA_ERRERR:    strcpy(buff, "LUA_ERRERR"); break;
+        default: snprintf(buff, 20, "%d", lstat); break;
     }
 
     // The error string from Lua.
-    common_log(LOG_ERROR, "%s: %s", lerr, lua_tostring(p_LScript, -1));
+    common_log(LOG_ERROR, "%s: %s", buff, lua_tostring(p_LScript, -1));
 
     return status;
 }

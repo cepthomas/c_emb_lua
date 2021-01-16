@@ -1,11 +1,11 @@
 
-#include "lua2c.h"
+#include "luatoc.h"
 #include "board.h"
 
 
 //--------------------------------------------------------//
 
-int p_lua2c_log(lua_State* L)
+int p_luatoc_log(lua_State* L)
 {
     ///// Get function arguments.
     int level = 0;
@@ -31,9 +31,9 @@ int p_lua2c_log(lua_State* L)
 }
 
 //--------------------------------------------------------//
-//  local start = lua2c.msec()
+//  local start = luatoc.msec()
 
-int p_lua2c_msec(lua_State* L)
+int p_luatoc_msec(lua_State* L)
 {
     ///// Get function arguments.
     // none
@@ -47,7 +47,7 @@ int p_lua2c_msec(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_lua2c_digout(lua_State* L)
+int p_luatoc_digout(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
@@ -63,7 +63,7 @@ int p_lua2c_digout(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_lua2c_digin(lua_State* L)
+int p_luatoc_digin(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
@@ -80,14 +80,14 @@ int p_lua2c_digin(lua_State* L)
 
 
 //--------------------------------------------------------//
-/// List of functions in the module.
-static const luaL_Reg lua2clib[] =
+/// Map functions in the module.
+static const luaL_Reg luatoclib[] =
 {
 //  { lua func, c func }
-    { "log",    p_lua2c_log },
-    { "msec",   p_lua2c_msec },
-    { "digout", p_lua2c_digout },
-    { "digin",  p_lua2c_digin },
+    { "log",    p_luatoc_log },
+    { "msec",   p_luatoc_msec },
+    { "digout", p_luatoc_digout },
+    { "digin",  p_luatoc_digin },
     { NULL, NULL }
 };
 
@@ -95,18 +95,18 @@ static const luaL_Reg lua2clib[] =
 /// Called by system to actually load the lib.
 /// @param[in] L Lua state.
 /// @return Status = 1 if ok.
-int p_open_lua2c (lua_State *L)
+int p_open_luatoc (lua_State *L)
 {
     // Register our C <-> Lua functions.
-    luaL_newlib(L, lua2clib);
+    luaL_newlib(L, luatoclib);
 
     return 1;
 }
 
 //--------------------------------------------------------//
 /// Identify the system callback to load the lib.
-/// \param L
-void lua2c_preload(lua_State* L)
+/// @param[in] L Lua state.
+void luatoc_preload(lua_State* L)
 {
-    luaL_requiref(L, "lua2c", p_open_lua2c, 1);
+    luaL_requiref(L, "luatoc", p_open_luatoc, 1);
 }

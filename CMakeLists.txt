@@ -18,8 +18,8 @@ add_executable(cemblua
     source/exec.c
     source/board.c
     source/luainterop.c
-    source/c2lua.c
-    source/lua2c
+    source/ctolua.c
+    source/luatoc
     lua-5.3.5/src/lapi.c
     lua-5.3.5/src/lauxlib.c
     lua-5.3.5/src/lbaselib.c
@@ -56,3 +56,7 @@ add_executable(cemblua
     lua-5.3.5/src/lvm.c
     lua-5.3.5/src/lzio.c
     )
+
+# Copy scripts.
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/source/demoapp.lua  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/source/utils.lua  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

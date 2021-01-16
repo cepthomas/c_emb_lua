@@ -8,11 +8,12 @@
         {
             "name": "debug test",
             "type": "gdb",
-            "request": "launch",
+            "request": "launch", //"attach"
+            "valuesFormatting": "parseText",
             // Set debug target as appropriate.
+            "cwd": "${workspaceFolder}/build",
             "target": "${workspaceFolder}/build/cemblua.exe",
-            "cwd": "${workspaceFolder}",
-            "valuesFormatting": "parseText"
+            "arguments": "demoapp.lua"
         }
     ]
 }

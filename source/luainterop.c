@@ -11,7 +11,6 @@
 
 //---------------- Public Implementation -------------//
 
-//---------------- Getters ---------------------------//
 
 //--------------------------------------------------------//
 void luainterop_getArgInt(lua_State* L, int index, int* ret)
@@ -65,9 +64,6 @@ void luainterop_getArgStr(lua_State* L, int index, const char** ret)
     }
 }
 
-
-//---------------- Utilities ---------------------------//
-
 //--------------------------------------------------------//
 void luainterop_luaError(lua_State* L, const char* format, ...)
 {
@@ -88,18 +84,19 @@ void luainterop_luaError(lua_State* L, const char* format, ...)
 //--------------------------------------------------------//
 const char* luainterop_xlatLuaStatus(int lstat)
 {
-    const char* lerr = "???";
+    static char buff[20];
     switch(lstat)
     {
-        case LUA_OK:        lerr = "LUA_OK";        break;
-        case LUA_YIELD:     lerr = "LUA_YIELD";     break;
-        case LUA_ERRRUN:    lerr = "LUA_ERRRUN";    break;
-        case LUA_ERRSYNTAX: lerr = "LUA_ERRSYNTAX"; break;
-        case LUA_ERRMEM:    lerr = "LUA_ERRMEM";    break;
-        case LUA_ERRGCMM:   lerr = "LUA_ERRGCMM";   break;
-        case LUA_ERRERR:    lerr = "LUA_ERRERR";    break;
+        case LUA_OK:        strcpy(buff, "LUA_OK"); break;
+        case LUA_YIELD:     strcpy(buff, "LUA_YIELD"); break;
+        case LUA_ERRRUN:    strcpy(buff, "LUA_ERRRUN"); break;
+        case LUA_ERRSYNTAX: strcpy(buff, "LUA_ERRSYNTAX"); break;
+        case LUA_ERRMEM:    strcpy(buff, "LUA_ERRMEM"); break;
+        case LUA_ERRGCMM:   strcpy(buff, "LUA_ERRGCMM"); break;
+        case LUA_ERRERR:    strcpy(buff, "LUA_ERRERR"); break;
+        default: snprintf(buff, 20, "%d", lstat); break;
     }
-    return lerr;
+    return buff;
 }
 
 //--------------------------------------------------------//
@@ -124,7 +121,7 @@ void luainterop_dumpStack(lua_State *L)
             case LUA_TTHREAD:
             case LUA_TUSERDATA:
             case LUA_TLIGHTUSERDATA: snprintf(buff, LINE_LEN, "ind:%d %s:%p ", i, lua_typename(L, t), lua_topointer(L, i));   break;
-            default:                 snprintf(buff, LINE_LEN, "ind:%d ????", i);   break;
+            default:                 snprintf(buff, LINE_LEN, "ind:%d type:%d", i, t);   break;
         }
 
         common_log(LOG_INFO, "%s", buff);

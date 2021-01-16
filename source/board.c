@@ -119,8 +119,7 @@ status_t board_regTimerInterrupt(unsigned int msec, fpTimerInterrupt fp)
     p_timerInterrupt = fp;
 
 #ifdef WIN32
-    if(CreateTimerQueueTimer(&p_winHandle, NULL, (WAITORTIMERCALLBACK)p_winTimerHandler,
-         NULL, msec, msec, WT_EXECUTEINTIMERTHREAD) == 0)
+    if(CreateTimerQueueTimer(&p_winHandle, NULL, (WAITORTIMERCALLBACK)p_winTimerHandler, NULL, msec, msec, WT_EXECUTEINTIMERTHREAD) == 0)
     {
         stat = STATUS_ERROR;
     }

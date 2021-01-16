@@ -1,10 +1,10 @@
 
-#include "c2lua.h"
+#include "ctolua.h"
 #include "board.h"
 
 
 //--------------------------------------------------------//
-void c2lua_context(lua_State* L, const char* s, int i)
+void ctolua_context(lua_State* L, const char* s, int i)
 {
     // Create a new empty table and pushes it onto the stack.
     lua_newtable(L);
@@ -21,7 +21,7 @@ void c2lua_context(lua_State* L, const char* s, int i)
 }
 
 //--------------------------------------------------------//
-void c2lua_calc(lua_State* L, int x, int y, double* res)
+void ctolua_calc(lua_State* L, int x, int y, double* res)
 {
     int lstat = 0;
 
@@ -53,7 +53,7 @@ void c2lua_calc(lua_State* L, int x, int y, double* res)
 }
 
 //--------------------------------------------------------//
-void c2lua_handleInput(lua_State* L, unsigned int pin, bool value)
+void ctolua_handleInput(lua_State* L, unsigned int pin, bool value)
 {
     int lstat = 0;
 

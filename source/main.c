@@ -10,24 +10,32 @@
 /// @return Standard exit code.
 int main(int argc, char* argv[])
 {
-    (void)argc;
-    (void)argv;
-
     int ret = 0;
 
-    if(exec_init() == STATUS_OK)
+    if(argc == 2)
     {
-        // Blocks forever.
-        if(exec_run() != STATUS_OK)
+        if(exec_init() == STATUS_OK)
         {
-            // Bad thing happened.
+            // Blocks forever.
+            if(exec_run(argv[1]) != STATUS_OK)
+            {
+                // Bad thing happened.
+                ret = 3;
+                printf("exec_run() failed\n");
+            }
+        }
+        else
+        {
             ret = 2;
+            printf("exec_init() failed\n");
         }
     }
     else
     {
         ret = 1;
+        printf("invalid args\n");
     }
+
 
     return ret;
 }

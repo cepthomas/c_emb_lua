@@ -2,7 +2,7 @@
 Lua utilities.
 --]]
 
-local lua2c = require "lua2c"
+local luatoc = require "luatoc"
 
 -- Create the namespace/module.
 local M = {}
@@ -15,13 +15,13 @@ function M.delay_timer(msec)
   local timeout = msec
 
   -- Grab the start time.
-  local start = lua2c.msec()
+  local start = luatoc.msec()
   
   -- The accessor function.
   local status =
     function()
       -- Are we there yet?
-      return (lua2c.msec() - start) > timeout
+      return (luatoc.msec() - start) > timeout
     end  
       
   return { status = status }      
