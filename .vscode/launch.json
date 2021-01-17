@@ -10,6 +10,7 @@
             "type": "gdb",
             "request": "launch", //"attach"
             "valuesFormatting": "parseText",
+            "preLaunchTask": "build everything",
             // Set debug target as appropriate.
             "cwd": "${workspaceFolder}/build",
             "target": "${workspaceFolder}/build/cemblua.exe",

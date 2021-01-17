@@ -2,7 +2,7 @@
 A minimal example of a C embedded executable with lua script processor.
 
 - Pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.
-- There is a QMake/mingw project included to build it for demonstration purposes.
+- A VS Code workspace using mingw and CMake is supplied. Your PATH needs to include mingw.
 - It supports only windows (search WIN32) right now but should be easy to convert to linux or bare metal.
 - CLI pretends to be a serial port.
 
@@ -17,6 +17,5 @@ A minimal example of a C embedded executable with lua script processor.
 - demoapp.lua - Lua script for a simplistic multithreaded/coroutine application. Uses luatoc.
 - utils.lua - Used by demoapp.lua.
 
-# License
-[App](https://github.com/cepthomas/c-emb-lua/blob/master/LICENSE)   
+# Licenses
 [Lua](https://github.com/cepthomas/c-emb-lua/blob/master/LUA-LICENSE)
