@@ -9,7 +9,7 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "build everything",
+            "label": "build-all",
             "windows": {
                 "command": "./build.cmd"
             },
