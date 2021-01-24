@@ -4,7 +4,7 @@
 
 #include "common.h"
 
-/// @file Interface to the hardware board. Ours is simulated, yours would be completely different.
+/// @brief Interface to the hardware board. Ours is simulated, yours would be completely different.
 
 
 /// Physical IO.

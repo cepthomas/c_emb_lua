@@ -2,7 +2,7 @@
 #ifndef LUAINTEROP_H
 #define LUAINTEROP_H
 
-/// @file Generic stuff for talking with lua. This could be in a lib.
+/// @brief Generic stuff for talking with lua. This could be in a lib.
 
 
 #include "lua.h"

@@ -6,7 +6,7 @@
 #include "common.h"
 
 
-/// @file Does the heavy lifting of the application.
+/// @brief Does the heavy lifting of the application.
 
 
 /// Initialize the module.

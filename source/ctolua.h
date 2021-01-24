@@ -6,7 +6,7 @@
 #include "luainterop.h"
 
 
-/// @file Interface to call lua functions from C.
+/// @brief Interface to call lua functions from C.
 
 /// Function to fill context table. Could be a generic version.
 /// @param L Lua environment.

@@ -2,7 +2,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-/// @file General defs.
+/// @brief General defs.
 
 #include <stdlib.h>
 #include <stdio.h>
