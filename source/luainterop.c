@@ -105,11 +105,11 @@ void luainterop_dumpStack(lua_State *L)
     #define LINE_LEN 100
     char buff[LINE_LEN];
 
-    for (int i = lua_gettop(L); i >= 1; i--)
+    for(int i = lua_gettop(L); i >= 1; i--)
     {
         int t = lua_type(L, i);
 
-        switch (t)
+        switch(t)
         {
             case LUA_TSTRING:        snprintf(buff, LINE_LEN, "ind:%d string:%s ", i, lua_tostring(L, i));   break;
             case LUA_TBOOLEAN:       snprintf(buff, LINE_LEN, "ind:%d bool:%s ", i, lua_toboolean(L, i) ? "true" : "false");   break;

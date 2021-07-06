@@ -161,7 +161,7 @@ status_t p_startScript(const char* fn)
     // Load the script/file we are going to run.
     lstat = luaL_loadfile(p_LScript, fn);
 
-    if (lstat == LUA_OK)
+    if(lstat == LUA_OK)
     {
         // Init the script. This also starts blocking execution.
         lstat = lua_resume(p_LScript, 0, 0);

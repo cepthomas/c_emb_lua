@@ -34,7 +34,7 @@ void ctolua_calc(lua_State* L, int x, int y, double* res)
 
     ///// Use lua_pcall to do the actual call.
     lstat = lua_pcall(L, 2, 1, 0);
-    if (lstat >= LUA_ERRRUN)
+    if(lstat >= LUA_ERRRUN)
     {
         luainterop_luaError(L, "lua_pcall calc() failed");
     }
@@ -67,7 +67,7 @@ void ctolua_handleInput(lua_State* L, unsigned int pin, bool value)
     ///// Use lua_pcall to do the actual call.
     lstat = lua_pcall(L, 2, 1, 0);
 
-    if (lstat >= LUA_ERRRUN)
+    if(lstat >= LUA_ERRRUN)
     {
         luainterop_luaError(L, "Call hinput() failed");
     }
