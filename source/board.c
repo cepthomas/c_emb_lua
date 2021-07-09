@@ -3,6 +3,7 @@
 #include <sys/time.h>
 #include <string.h>
 #include <conio.h>
+#include <stdarg.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -87,16 +88,6 @@ status_t board_enbInterrupts(bool enb)
     status_t stat = STATUS_OK;
 
     p_enbInterrupts = enb;
-
-    return stat;
-}
-
-//--------------------------------------------------------//
-status_t board_log(const char* txt)
-{
-    status_t stat = STATUS_OK;
-
-    board_serWriteLine(txt);
 
     return stat;
 }
@@ -227,9 +218,16 @@ status_t board_serReadLine(char* buff, unsigned int num)
 }
 
 //--------------------------------------------------------//
-status_t board_serWriteLine(const char* buff)//TODOP
+status_t board_serWriteLine(const char* format, ...)
 {
     status_t stat = STATUS_OK;
+
+    #define LINE_LEN 100
+    static char buff[LINE_LEN];
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buff, LINE_LEN-1, format, args);
 
     // Add a prompt.
     printf("%s\r\n>", buff);

@@ -5,7 +5,7 @@
     },
     "configurations": [
         {
-            "name": "cbot",
+            "name": "c_emb_lua",
             "includePath": [
                 "${workspaceFolder}/source",
                 "${workspaceFolder}/lua-5.3.5/src"
@@ -14,7 +14,7 @@
                 "abc"
             ],
             "compilerPath": "${gccPath}/g++",
-            //"cStandard": "c99",
+            "cStandard": "c99",
             "intelliSenseMode": "gcc-x86"
         }
     ],

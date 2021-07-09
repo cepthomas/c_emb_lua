@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "common.h"
+#include "board.h"
 #include "luainterop.h"
 
 
@@ -124,6 +125,6 @@ void luainterop_dumpStack(lua_State *L)
             default:                 snprintf(buff, LINE_LEN, "ind:%d type:%d", i, t);   break;
         }
 
-        common_log(LOG_INFO, "%s", buff);
+        board_serWriteLine(buff);
     }
 }

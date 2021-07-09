@@ -9,7 +9,7 @@ local math = require "math"
 function do_loop()
   -- Do some work then yield.
   for i = 1, 10 do
-    luatoc.log(0, "loop num:"..i)
+    luatoc.serwr("loop num:"..i)
 
     -- Do work
     counter = 0
@@ -26,7 +26,7 @@ end
 
 -- Pin input has arrived from board.
 function hinput (pin, value)
-    luatoc.log(0, string.format("lua got input pin %d = %s ", pin, tostring(value)))
+    luatoc.serwr(string.format("lua got input pin %d = %s ", pin, tostring(value)))
 end
 
 -- Dumb calculator, only does addition.
@@ -38,14 +38,14 @@ end
 -----------------------------------------------------------------------------
 -- Module initialization.
 
-luatoc.log(0, "Module initialization")
+luatoc.serwr("Module initialization")
 
 -- for n in pairs(_G) do print(n) end
 
 -- Process the passed context.
 ctx = script_context
 slog = string.format ("context script_string:%s script_int:%d", ctx.script_string, ctx.script_int)
-luatoc.log(0, slog)
+luatoc.serwr(slog)
 
 -- Start working.
 do_loop()

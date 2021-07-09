@@ -10,4 +10,6 @@ cmake -G "MinGW Makefiles" ..
 make
 cd ..
 
+copy source\*.lua build
+
 rem pause

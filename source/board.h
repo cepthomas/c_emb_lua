@@ -37,11 +37,6 @@ status_t board_init(void);
 /// @return Status.
 status_t board_enbInterrupts(bool enb);
 
-/// Send to the log.
-/// @param txt Text to log.
-/// @return Status.
-status_t board_log(const char* txt);
-
 /// Clean up component resources.
 /// @return Status.
 status_t board_destroy(void);
@@ -83,7 +78,7 @@ status_t board_serReadLine(char* buff, unsigned int num);
 /// Write a line to a serial channel.
 /// @param buff What to send as a zero-terminated string.
 /// @return Status.
-status_t board_serWriteLine(const char* buff);
+status_t board_serWriteLine(const char* format, ...);
 
 
 //---------------- Timer Functions -----------------//
@@ -96,7 +91,7 @@ status_t board_regTimerInterrupt(unsigned int msec, fpTimerInterrupt fp);
 
 /// Get number of microseconds since beginning.
 /// @return Microseconds.
-uint64_t board_getCurrentUsec(void);
+uint64_t board_getCurrentUsec(void);//TODOP
 
 
 #endif // BOARD_H

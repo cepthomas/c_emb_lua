@@ -5,7 +5,7 @@
 
 #ifdef WIN32
 #include <windows.h>
-#define sleep(t) Sleep(t)
+#define sleep(t) Sleep(t) TODO?
 #endif
 
 
@@ -132,7 +132,7 @@ status_t exec_run(const char* fn)
     }
 
     // Done, close up shop.
-    common_log(LOG_INFO, "Goodbye - come back soon!");
+    board_serWriteLine("Goodbye - come back soon!");
     board_enbInterrupts(false);
 
     p_stopScript(); // just in case
@@ -183,7 +183,7 @@ status_t p_startScript(const char* fn)
             case LUA_OK:
                 // If script is not long running, it is complete now.
                 p_scriptRunning = false;
-                common_log(LOG_INFO, "Finished script.");
+                board_serWriteLine("Finished script.");
                 break;
 
             default:
@@ -232,7 +232,7 @@ void p_timerHandler(void)
             case LUA_OK:
                 // It is complete now.
                 p_scriptRunning = false;
-                common_log(LOG_INFO, "Finished script.");
+                board_serWriteLine("Finished script.");
                 break;
 
             default:
@@ -290,7 +290,7 @@ status_t p_processCommand(const char* sin)
                     common_strtoi(opts[1], &x);
                     common_strtoi(opts[2], &y);
                     ctolua_calc(p_LScript, x, y, &res);
-                    common_log(LOG_INFO, "%d + %d = %g", x, y, res);
+                    board_serWriteLine("%d + %d = %g", x, y, res);
                     valid = true;
                 }
                 break;
@@ -302,7 +302,7 @@ status_t p_processCommand(const char* sin)
                     bool value;
                     common_strtoi(opts[1], &pin);
                     board_readDig((unsigned int)pin, &value);
-                    common_log(LOG_INFO, "read pin:%d = %d", pin, value);
+                    board_serWriteLine("read pin:%d = %d", pin, value);
                     valid = true;
                 }
                 break;
@@ -315,7 +315,7 @@ status_t p_processCommand(const char* sin)
                     common_strtoi(opts[1], &pin);
                     value = opts[2][0] == 't';
                     board_writeDig((unsigned int)pin, value);
-                    common_log(LOG_INFO, "write pin:%d = %d", pin, value);
+                    board_serWriteLine("write pin:%d = %d", pin, value);
                     ctolua_handleInput(p_LScript, (unsigned int)pin, value);
                     valid = true;
                 }
@@ -326,11 +326,11 @@ status_t p_processCommand(const char* sin)
     if(!valid)
     {
         // usage
-        common_log(LOG_WARN, "Invalid cmd:%s, try one of these:", sin);
-        common_log(LOG_WARN, "  exit: x");
-        common_log(LOG_WARN, "  calculator: c num1 num2");
-        common_log(LOG_WARN, "  read io pin: r pin");
-        common_log(LOG_WARN, "  write io pin: w pin val");
+        board_serWriteLine("Invalid cmd:%s, try one of these:", sin);
+        board_serWriteLine("  exit: x");
+        board_serWriteLine("  calculator: c num1 num2");
+        board_serWriteLine("  read io pin: r pin");
+        board_serWriteLine("  write io pin: w pin val");
     }
 
     return stat;
@@ -368,7 +368,7 @@ status_t p_processExecError(int lstat)
     }
 
     // The error string from Lua.
-    common_log(LOG_ERROR, "%s: %s", buff, lua_tostring(p_LScript, -1));
+    board_serWriteLine("%s: %s", buff, lua_tostring(p_LScript, -1));
 
     return status;
 }

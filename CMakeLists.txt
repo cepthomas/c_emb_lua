@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 project(cemblua)
 
-# set(CMAKE_C_STANDARD 99)
-# set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 11)
 
-# needs -g to debug. Probably get rid of -Wno-deprecated-declarations.
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Werror -Wno-deprecated-declarations")
+# needs -g to debug. TODO Clean these up.
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Werror -Wno-deprecated-declarations -Wno-unused-variable")
 
 # add_compile_definitions(xxx=1)
 
@@ -57,6 +57,6 @@ add_executable(cemblua
     lua-5.3.5/src/lzio.c
     )
 
-# Copy scripts.
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/source/demoapp.lua  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/source/utils.lua  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# Copy scripts. TODO do this correctly not build.cmd.
+#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/source/demoapp.lua  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+#file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/source/utils.lua  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

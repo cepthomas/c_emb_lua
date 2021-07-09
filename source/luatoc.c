@@ -5,26 +5,14 @@
 
 //--------------------------------------------------------//
 
-int p_luatoc_log(lua_State* L)
+int p_luatoc_serwr(lua_State* L)
 {
     ///// Get function arguments.
-    int level = 0;
     const char* info = NULL;
-    luainterop_getArgInt(L, 1, &level);
-    luainterop_getArgStr(L, 2, &info);
+    luainterop_getArgStr(L, 1, &info);
 
     ///// Do the work.
-    // Convert log level from lua to C. Could be a fancy/smart enum in the future.
-    loglvl_t llevel;
-
-    switch(level)
-    {
-        case 0: llevel = LOG_INFO; break;
-        case 1: llevel = LOG_WARN; break;
-        default: llevel = LOG_ERROR; break;
-    }
-
-    common_log(llevel, info);
+    board_serWriteLine(info);
 
     ///// Push return values.
     return 0; // number of results
@@ -84,7 +72,7 @@ int p_luatoc_digin(lua_State* L)
 static const luaL_Reg luatoclib[] =
 {
 //  { lua func, c func }
-    { "log",    p_luatoc_log },
+    { "serwr",  p_luatoc_serwr },
     { "msec",   p_luatoc_msec },
     { "digout", p_luatoc_digout },
     { "digin",  p_luatoc_digin },
