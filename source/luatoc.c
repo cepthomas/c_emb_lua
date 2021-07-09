@@ -93,7 +93,7 @@ static const luaL_Reg luatoclib[] =
 
 //--------------------------------------------------------//
 /// Called by system to actually load the lib.
-/// @param[in] L Lua state.
+/// @param L Lua state.
 /// @return Status = 1 if ok.
 int p_open_luatoc (lua_State *L)
 {
@@ -105,7 +105,7 @@ int p_open_luatoc (lua_State *L)
 
 //--------------------------------------------------------//
 /// Identify the system callback to load the lib.
-/// @param[in] L Lua state.
+/// @param L Lua state.
 void luatoc_preload(lua_State* L)
 {
     luaL_requiref(L, "luatoc", p_open_luatoc, 1);

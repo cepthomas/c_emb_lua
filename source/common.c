@@ -28,7 +28,7 @@ status_t common_init(void)
 }
 
 //--------------------------------------------------------//
-status_t common_log(loglvl_t level, const char* format, ...)
+status_t common_log(loglvl_t level, const char* format, ...)//TODOP
 {
     status_t stat = STATUS_OK;
   

@@ -55,12 +55,12 @@ static void p_timerHandler(void);
 static void p_digInputHandler(unsigned int which, bool value);
 
 /// @brief Process for all commands from clients.
-/// @param[in] sin The arbitrary command and args.
+/// @param sin The arbitrary command and args.
 /// @return status
 static status_t p_processCommand(const char* sin);
 
 /// @brief Starts the script running.
-/// @param[in] fn Script filename.
+/// @param fn Script filename.
 /// @return status
 static status_t p_startScript(const char* fn);
 
@@ -69,7 +69,7 @@ static status_t p_startScript(const char* fn);
 static status_t p_stopScript(void);
 
 /// @brief Common handler for lua runtime execution errors.
-/// @param[in] lstat The lua status value.
+/// @param lstat The lua status value.
 /// @return status
 static status_t p_processExecError(int lstat);
 
@@ -88,20 +88,20 @@ status_t exec_init(void)
     p_LMain = luaL_newstate();
 
     // Init components.
-    CHECKED_FUNC(stat, common_init);
-    CHECKED_FUNC(stat, board_init);
+    stat = common_init();
+    stat = board_init();
 
     // Set up all board-specific stuff.
-    CHECKED_FUNC(stat, board_regTimerInterrupt, SYS_TICK_MSEC, p_timerHandler);
-    CHECKED_FUNC(stat, board_serOpen, 0);
+    stat = board_regTimerInterrupt(SYS_TICK_MSEC, p_timerHandler);
+    stat = board_serOpen(0);
 
     // Register for input interrupts.
-    CHECKED_FUNC(stat, board_regDigInterrupt, p_digInputHandler);
+    stat = board_regDigInterrupt(p_digInputHandler);
 
     // Init outputs.
-    CHECKED_FUNC(stat, board_writeDig, DIG_OUT_1, true);
-    CHECKED_FUNC(stat, board_writeDig, DIG_OUT_2, false);
-    CHECKED_FUNC(stat, board_writeDig, DIG_OUT_3, true);
+    stat = board_writeDig(DIG_OUT_1, true);
+    stat = board_writeDig(DIG_OUT_2, false);
+    stat = board_writeDig(DIG_OUT_3, true);
 
     return stat;
 }

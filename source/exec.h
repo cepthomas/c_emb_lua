@@ -14,7 +14,7 @@
 status_t exec_init(void);
 
 /// Enter the forever loop.
-/// @param[in] fn Script filename.
+/// @param fn Script filename.
 /// @return Status on exit.
 status_t exec_run(const char* fn);
 

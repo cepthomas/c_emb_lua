@@ -227,7 +227,7 @@ status_t board_serReadLine(char* buff, unsigned int num)
 }
 
 //--------------------------------------------------------//
-status_t board_serWriteLine(const char* buff)
+status_t board_serWriteLine(const char* buff)//TODOP
 {
     status_t stat = STATUS_OK;
 

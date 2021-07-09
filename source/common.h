@@ -32,17 +32,6 @@ typedef enum
 } loglvl_t;
 
 
-/// Helper macro.
-#define CHECKED_FUNC(stat, func, ...) \
-{ \
-    stat = func(__VA_ARGS__); \
-    if(stat != STATUS_OK) \
-    { \
-        common_log(LOG_ERROR, #func); \
-    } \
-}
-
-
 /// Initialize the module.
 /// @return Status.
 status_t common_init(void);
