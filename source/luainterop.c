@@ -14,7 +14,7 @@
 
 
 //--------------------------------------------------------//
-void luainterop_getArgInt(lua_State* L, int index, int* ret)
+void luainterop_GetArgInt(lua_State* L, int index, int* ret)
 {
     if(lua_isnumber(L, index) > 0)
     {
@@ -22,12 +22,12 @@ void luainterop_getArgInt(lua_State* L, int index, int* ret)
     }
     else
     {
-        luainterop_luaError(L, "Invalid integer argument at index %d", index);
+        luainterop_LuaError(L, "Invalid integer argument at index %d", index);
     }
 }
 
 //--------------------------------------------------------//
-void luainterop_getArgDbl(lua_State* L, int index, double* ret)
+void luainterop_GetArgDbl(lua_State* L, int index, double* ret)
 {
     if(lua_isnumber(L, index) > 0)
     {
@@ -35,12 +35,12 @@ void luainterop_getArgDbl(lua_State* L, int index, double* ret)
     }
     else
     {
-        luainterop_luaError(L, "Invalid double argument at index %d", index);
+        luainterop_LuaError(L, "Invalid double argument at index %d", index);
     }
 }
 
 //--------------------------------------------------------//
-void luainterop_getArgBool(lua_State* L, int index, bool* ret)
+void luainterop_GetArgBool(lua_State* L, int index, bool* ret)
 {
     if(lua_isboolean(L, index) > 0)
     {
@@ -48,12 +48,12 @@ void luainterop_getArgBool(lua_State* L, int index, bool* ret)
     }
     else
     {
-        luainterop_luaError(L, "Invalid bool argument at index %d", index);
+        luainterop_LuaError(L, "Invalid bool argument at index %d", index);
     }
 }
 
 //--------------------------------------------------------//
-void luainterop_getArgStr(lua_State* L, int index, const char** ret)
+void luainterop_GetArgStr(lua_State* L, int index, const char** ret)
 {
     if(lua_isstring(L, index) > 0)
     {
@@ -61,29 +61,29 @@ void luainterop_getArgStr(lua_State* L, int index, const char** ret)
     }
     else
     {
-        luainterop_luaError(L, "Invalid string argument at index %d", index);
+        luainterop_LuaError(L, "Invalid string argument at index %d", index);
     }
 }
 
 //--------------------------------------------------------//
-void luainterop_luaError(lua_State* L, const char* format, ...)
+void luainterop_LuaError(lua_State* L, const char* format, ...)
 {
-    static char p_buff[SER_BUFF_LEN];
+    static char buff[SER_BUFF_LEN];
 
     va_list args;
     va_start(args, format);
-    vsnprintf(p_buff, SER_BUFF_LEN-1, format, args);
+    vsnprintf(buff, SER_BUFF_LEN-1, format, args);
 
     // Dump stacktrace.
     luaL_traceback(L, L, NULL, 1);
     printf("%s\n", lua_tostring(L, -1));
 
-    lua_pushstring(L, p_buff);
+    lua_pushstring(L, buff);
     lua_error(L); // never returns
 }
 
 //--------------------------------------------------------//
-void luainterop_dumpStack(lua_State *L)
+void luainterop_DumpStack(lua_State *L)
 {
     char buff[SER_BUFF_LEN];
 
@@ -106,6 +106,6 @@ void luainterop_dumpStack(lua_State *L)
             default:                 snprintf(buff, SER_BUFF_LEN, "ind:%d type:%d", i, t);   break;
         }
 
-        board_serWriteLine(buff);
+        board_SerWriteLine(buff);
     }
 }

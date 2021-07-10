@@ -14,36 +14,36 @@
 
 /// Dump the lua stack contents.
 /// @param L Lua state.
-void luainterop_dumpStack(lua_State *L);
+void luainterop_DumpStack(lua_State *L);
 
 /// Report a bad thing detected by this component.
 /// @param L Lua state.
 /// @param format Standard string stuff.
-void luainterop_luaError(lua_State* L, const char* format, ...);
+void luainterop_LuaError(lua_State* L, const char* format, ...);
 
 /// Utility to get an int arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-void luainterop_getArgInt(lua_State* L, int index, int* ret);
+void luainterop_GetArgInt(lua_State* L, int index, int* ret);
 
 /// Utility to get a double arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-void luainterop_getArgDbl(lua_State* L, int index, double* ret);
+void luainterop_GetArgDbl(lua_State* L, int index, double* ret);
 
 /// Utility to get a boolean arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-void luainterop_getArgBool(lua_State* L, int index, bool* ret);
+void luainterop_GetArgBool(lua_State* L, int index, bool* ret);
 
 /// Utility to get a string arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-void luainterop_getArgStr(lua_State* L, int index, const char** ret);
+void luainterop_GetArgStr(lua_State* L, int index, const char** ret);
 
 
 #endif // LUAINTEROP_H

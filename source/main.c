@@ -14,10 +14,10 @@ int main(int argc, char* argv[])
 
     if(argc == 2)
     {
-        if(exec_init() == STATUS_OK)
+        if(exec_Init() == STATUS_OK)
         {
             // Blocks forever.
-            if(exec_run(argv[1]) != STATUS_OK)
+            if(exec_Run(argv[1]) != STATUS_OK)
             {
                 // Bad thing happened.
                 ret = 3;

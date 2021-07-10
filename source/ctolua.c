@@ -4,7 +4,7 @@
 
 
 //--------------------------------------------------------//
-void ctolua_context(lua_State* L, const char* s, int i)
+void ctolua_Context(lua_State* L, const char* s, int i)
 {
     // Create a new empty table and pushes it onto the stack.
     lua_newtable(L);
@@ -21,7 +21,7 @@ void ctolua_context(lua_State* L, const char* s, int i)
 }
 
 //--------------------------------------------------------//
-void ctolua_calc(lua_State* L, int x, int y, double* res)
+void ctolua_Calc(lua_State* L, int x, int y, double* res)
 {
     int lstat = 0;
 
@@ -36,7 +36,7 @@ void ctolua_calc(lua_State* L, int x, int y, double* res)
     lstat = lua_pcall(L, 2, 1, 0);
     if(lstat >= LUA_ERRRUN)
     {
-        luainterop_luaError(L, "lua_pcall calc() failed");
+        luainterop_LuaError(L, "lua_pcall calc() failed");
     }
 
     ///// Pop the results from the stack.
@@ -46,14 +46,14 @@ void ctolua_calc(lua_State* L, int x, int y, double* res)
     }
     else
     {
-        luainterop_luaError(L, "Bad calc() return value");
+        luainterop_LuaError(L, "Bad calc() return value");
     }
 
     lua_pop(L, 1);  // pop returned value
 }
 
 //--------------------------------------------------------//
-void ctolua_handleInput(lua_State* L, unsigned int pin, bool value)
+void ctolua_HandleInput(lua_State* L, unsigned int pin, bool value)
 {
     int lstat = 0;
 
@@ -69,7 +69,7 @@ void ctolua_handleInput(lua_State* L, unsigned int pin, bool value)
 
     if(lstat >= LUA_ERRRUN)
     {
-        luainterop_luaError(L, "Call hinput() failed");
+        luainterop_LuaError(L, "Call hinput() failed");
     }
 
     /////

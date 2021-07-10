@@ -11,95 +11,95 @@
 //---------------- Private ------------------------------//
 
 /// Registered client callback.
-static fpDigInterrupt p_digInterrupt;
+static board_DigInterrupt_t p_dig_interrupt;
 
 /// Registered client callback.
-static fpTimerInterrupt p_timerInterrupt;
+static board_TimerInterrupt_t p_timer_interrupt;
 
 /// Interrupts enabled?
-static bool p_enbInterrupts;
+static bool p_enb_interrupts;
 
 /// Serial receive buffer to collect input chars. In this simulator we will used stdio for serial IO.
-static char p_rxBuff[SER_BUFF_LEN];
+static char p_rx_buff[SER_BUFF_LEN];
 
 
 //---------------- Simulator Stuff -----------------------//
 
 /// Simulated digital IO pins.
-static bool p_digPinsSim[NUM_DIG_PINS];
+static bool p_dig_pins_sim[NUM_DIG_PINS];
 
 /// Windows periodic timer.
 #ifdef WIN32
 #include <windows.h>
-static HANDLE p_winHandle;
-static VOID CALLBACK p_winTimerHandler(PVOID, BOOLEAN);
-VOID CALLBACK p_winTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFired) { p_timerInterrupt(); }
+static HANDLE p_win_handle;
+static VOID CALLBACK p_WinTimerHandler(PVOID, BOOLEAN);
+VOID CALLBACK p_WinTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFired) { p_timer_interrupt(); }
 #endif
 
 
 //---------------- Public Implementation -----------------//
 
 //--------------------------------------------------------//
-status_t board_init(void)
+status_t board_Init(void)
 {
     status_t stat = STATUS_OK;
 
-    memset(p_rxBuff, 0, SER_BUFF_LEN);
+    memset(p_rx_buff, 0, SER_BUFF_LEN);
 
-    p_enbInterrupts = false;
-    p_digInterrupt = NULL;
-    p_timerInterrupt = NULL;
+    p_enb_interrupts = false;
+    p_dig_interrupt = NULL;
+    p_timer_interrupt = NULL;
 
     for(int i = 0; i < NUM_DIG_PINS; i++)
     {
-        p_digPinsSim[i] = false;
+        p_dig_pins_sim[i] = false;
     }
 
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_destroy(void)
+status_t board_Destroy(void)
 {
     status_t stat = STATUS_OK;
 
 #ifdef WIN32
-    DeleteTimerQueueTimer(NULL, p_winHandle, NULL);
-    CloseHandle(p_winHandle);
+    DeleteTimerQueueTimer(NULL, p_win_handle, NULL);
+    CloseHandle(p_win_handle);
 #endif
 
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_enbInterrupts(bool enb)
+status_t board_EnableInterrupts(bool enb)
 {
     status_t stat = STATUS_OK;
 
-    p_enbInterrupts = enb;
+    p_enb_interrupts = enb;
 
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_regDigInterrupt(fpDigInterrupt fp)
+status_t board_RegDigInterrupt(board_DigInterrupt_t fp)
 {
     status_t stat = STATUS_OK;
 
-    p_digInterrupt = fp;
+    p_dig_interrupt = fp;
 
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_regTimerInterrupt(unsigned int msec, fpTimerInterrupt fp)
+status_t board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp)
 {
     status_t stat = STATUS_OK;
 
-    p_timerInterrupt = fp;
+    p_timer_interrupt = fp;
 
 #ifdef WIN32
-    if(CreateTimerQueueTimer(&p_winHandle, NULL, (WAITORTIMERCALLBACK)p_winTimerHandler, NULL, msec, msec, WT_EXECUTEINTIMERTHREAD) == 0)
+    if(CreateTimerQueueTimer(&p_win_handle, NULL, (WAITORTIMERCALLBACK)p_WinTimerHandler, NULL, msec, msec, WT_EXECUTEINTIMERTHREAD) == 0)
     {
         stat = STATUS_ERROR;
     }
@@ -109,7 +109,7 @@ status_t board_regTimerInterrupt(unsigned int msec, fpTimerInterrupt fp)
 }
 
 //--------------------------------------------------------//
-uint64_t board_getCurrentUsec(void)
+uint64_t board_GetCurrentUsec(void)
 {
     struct timeval tv;
     struct timezone tz;
@@ -119,13 +119,13 @@ uint64_t board_getCurrentUsec(void)
 }
 
 //--------------------------------------------------------//
-status_t board_writeDig(unsigned int pin, bool value)
+status_t board_WriteDig(unsigned int pin, bool value)
 {
     status_t stat = STATUS_OK;
 
     if(pin < NUM_DIG_PINS)
     {
-        p_digPinsSim[pin] = value;
+        p_dig_pins_sim[pin] = value;
     }
     else
     {
@@ -136,13 +136,13 @@ status_t board_writeDig(unsigned int pin, bool value)
 }
 
 //--------------------------------------------------------//
-status_t board_readDig(unsigned int pin, bool* value)
+status_t board_ReadDig(unsigned int pin, bool* value)
 {
     status_t stat = STATUS_OK;
 
     if(pin < NUM_DIG_PINS)
     {
-        *value = p_digPinsSim[pin];
+        *value = p_dig_pins_sim[pin];
     }
     else
     {
@@ -153,20 +153,20 @@ status_t board_readDig(unsigned int pin, bool* value)
 }
 
 //--------------------------------------------------------//
-status_t board_serOpen(unsigned int channel)
+status_t board_SerOpen(unsigned int channel)
 {
     (void)channel;
 
     status_t stat = STATUS_OK;
 
     // Prompt.
-    board_serWriteLine("\r\n>");
+    board_SerWriteLine("\r\n>");
 
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_serReadLine(char* buff, unsigned int num)
+status_t board_SerReadLine(char* buff, unsigned int num)
 {
     status_t stat = STATUS_OK;
 
@@ -185,20 +185,20 @@ status_t board_serReadLine(char* buff, unsigned int num)
 
             case '\r':
                 // Echo return.
-                board_serWriteLine("");
+                board_SerWriteLine("");
                 // Copy to client buff.
-                strncpy(buff, p_rxBuff, num);
+                strncpy(buff, p_rx_buff, num);
                 // Clear.
-                memset(p_rxBuff, 0, SER_BUFF_LEN);
+                memset(p_rx_buff, 0, SER_BUFF_LEN);
                 // Echo prompt.
-                board_serWriteLine("");
+                board_SerWriteLine("");
                 break;
 
             default:
                 // Echo char.
                 putchar(c);
                 // Save it.
-                p_rxBuff[strlen(p_rxBuff)] = c;
+                p_rx_buff[strlen(p_rx_buff)] = c;
                 break;
         }
     }
@@ -207,7 +207,7 @@ status_t board_serReadLine(char* buff, unsigned int num)
 }
 
 //--------------------------------------------------------//
-status_t board_serWriteLine(const char* format, ...)
+status_t board_SerWriteLine(const char* format, ...)
 {
     status_t stat = STATUS_OK;
 

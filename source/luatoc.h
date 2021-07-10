@@ -10,7 +10,7 @@
 /// Setup to load the libs.
 /// @param L Lua environment.
 /// @return Status.
-void luatoc_preload(lua_State* L);
+void luatoc_Preload(lua_State* L);
 
 
 #endif // LUATOC_H

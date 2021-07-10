@@ -11,11 +11,11 @@
 
 /// Initialize the module.
 /// @return Status.
-status_t exec_init(void);
+status_t exec_Init(void);
 
 /// Enter the forever loop.
 /// @param fn Script filename.
 /// @return Status on exit.
-status_t exec_run(const char* fn);
+status_t exec_Run(const char* fn);
 
 #endif // EXEC_H

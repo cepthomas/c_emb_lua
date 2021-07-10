@@ -9,31 +9,31 @@
 //---------------- Private --------------------------//
 
 /// When the app was started.
-static uint64_t p_startTime;
+static uint64_t p_start_time;
 
 
 //---------------- Public Implementation -------------//
 
 //--------------------------------------------------------//
-int common_init(void)
+int common_Init(void)
 {
     int stat = 0;
 
-    p_startTime = board_getCurrentUsec();
+    p_start_time = board_GetCurrentUsec();
 
     return stat;
 }
 
 //--------------------------------------------------------//
-unsigned int common_getMsec()
+unsigned int common_GetMsec()
 {
-    uint64_t now = board_getCurrentUsec();
-    unsigned int msec = (unsigned int)abs((int)((now - p_startTime) / 1000));
+    uint64_t now = board_GetCurrentUsec();
+    unsigned int msec = (unsigned int)abs((int)((now - p_start_time) / 1000));
     return msec;
 }
 
 //--------------------------------------------------------//
-bool common_strtoi(const char* str, int* val)
+bool common_Strtoi(const char* str, int* val)
 {
     bool valid = true;
     char* p;

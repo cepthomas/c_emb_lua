@@ -26,16 +26,16 @@ typedef enum
 
 /// Initialize the module.
 /// @return Status.
-int common_init(void);
+int common_Init(void);
 
 /// Returns the number of milliseconds since the app was started.
 /// @return The msec.
-unsigned int common_getMsec(void);
+unsigned int common_GetMsec(void);
 
 /// Safe convert a string to integer.
 /// @param str The input.
 /// @param val The output.
 /// @return Valid conversion.
-bool common_strtoi(const char* str, int* val);
+bool common_Strtoi(const char* str, int* val);
 
 #endif // COMMON_H

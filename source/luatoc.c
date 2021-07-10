@@ -5,14 +5,14 @@
 
 //--------------------------------------------------------//
 
-int p_luatoc_serwr(lua_State* L)
+int p_SerWrite(lua_State* L)
 {
     ///// Get function arguments.
     const char* info = NULL;
-    luainterop_getArgStr(L, 1, &info);
+    luainterop_GetArgStr(L, 1, &info);
 
     ///// Do the work.
-    board_serWriteLine(info);
+    board_SerWriteLine(info);
 
     ///// Push return values.
     return 0; // number of results
@@ -21,13 +21,13 @@ int p_luatoc_serwr(lua_State* L)
 //--------------------------------------------------------//
 //  local start = luatoc.msec()
 
-int p_luatoc_msec(lua_State* L)
+int p_Msec(lua_State* L)
 {
     ///// Get function arguments.
     // none
 
     ///// Do the work.
-    unsigned int msec = common_getMsec();
+    unsigned int msec = common_GetMsec();
 
     ///// Push return values.
     lua_pushinteger(L, msec);
@@ -35,31 +35,31 @@ int p_luatoc_msec(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_luatoc_digout(lua_State* L)
+int p_DigOut(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
     bool state;
-    luainterop_getArgInt(L, 1, &pin);
-    luainterop_getArgBool(L, 2, &state);
+    luainterop_GetArgInt(L, 1, &pin);
+    luainterop_GetArgBool(L, 2, &state);
 
     ///// Do the work.
-    board_writeDig((unsigned int)pin, state);
+    board_WriteDig((unsigned int)pin, state);
 
     ///// Push return values.
     return 0; // number of results
 }
 
 //--------------------------------------------------------//
-int p_luatoc_digin(lua_State* L)
+int p_DigIn(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
-    luainterop_getArgInt(L, 1, &pin);
+    luainterop_GetArgInt(L, 1, &pin);
 
     ///// Do the work.
     bool state;
-    board_readDig((unsigned int)pin, &state);
+    board_ReadDig((unsigned int)pin, &state);
 
     ///// Push return values.
     lua_pushboolean(L, state);
@@ -72,10 +72,10 @@ int p_luatoc_digin(lua_State* L)
 static const luaL_Reg luatoclib[] =
 {
 //  { lua func, c func }
-    { "serwr",  p_luatoc_serwr },
-    { "msec",   p_luatoc_msec },
-    { "digout", p_luatoc_digout },
-    { "digin",  p_luatoc_digin },
+    { "serwr",  p_SerWrite },
+    { "msec",   p_Msec },
+    { "digout", p_DigOut },
+    { "digin",  p_DigIn },
     { NULL, NULL }
 };
 
@@ -83,7 +83,7 @@ static const luaL_Reg luatoclib[] =
 /// Called by system to actually load the lib.
 /// @param L Lua state.
 /// @return Status = 1 if ok.
-int p_open_luatoc (lua_State *L)
+int p_OpenLuatoc (lua_State *L)
 {
     // Register our C <-> Lua functions.
     luaL_newlib(L, luatoclib);
@@ -94,7 +94,7 @@ int p_open_luatoc (lua_State *L)
 //--------------------------------------------------------//
 /// Identify the system callback to load the lib.
 /// @param L Lua state.
-void luatoc_preload(lua_State* L)
+void luatoc_Preload(lua_State* L)
 {
-    luaL_requiref(L, "luatoc", p_open_luatoc, 1);
+    luaL_requiref(L, "luatoc", p_OpenLuatoc, 1);
 }
