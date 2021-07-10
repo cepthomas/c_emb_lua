@@ -11,9 +11,6 @@
 /// When the app was started.
 static uint64_t p_startTime;
 
-/// Fixed size for logging.
-#define LOG_LINE_LEN 100
-
 
 //---------------- Public Implementation -------------//
 

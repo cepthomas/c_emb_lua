@@ -3,12 +3,6 @@
 #include <conio.h>
 #include <unistd.h>
 
-#ifdef WIN32
-#include <windows.h>
-#define sleep(t) Sleep(t) TODO?
-#endif
-
-
 #include "common.h"
 #include "board.h"
 #include "luatoc.h"
@@ -19,11 +13,11 @@
 
 //---------------- Private --------------------------//
 
-// Note that Windows default clock is 64 times per second = 15.625 msec.
-#define SYS_TICK_MSEC 10
-#define SER_BUFF_LEN 128
-#define MAX_NUM_OPTS 4
+/// Note that Windows default clock is 64 times per second = 15.625 msec.
+const int SYS_TICK_MSEC = 10;
 
+/// Caps.
+const int MAX_NUM_OPTS = 4;
 
 /// The main Lua thread.
 static lua_State* p_LMain;
@@ -126,9 +120,6 @@ status_t exec_run(const char* fn)
         {
             stat = p_processCommand(p_rxBuf);
         }
-
-        //This doesn't like running in win debugger.
-        //sleep(5);
     }
 
     // Done, close up shop.

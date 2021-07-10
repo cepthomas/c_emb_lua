@@ -12,11 +12,6 @@
 #include "common.h"
 
 
-/// Format a readable string from the argument.
-/// @param lstat Lua status.
-/// @return The string.
-const char* luainterop_xlatLuaStatus(int lstat);
-
 /// Dump the lua stack contents.
 /// @param L Lua state.
 void luainterop_dumpStack(lua_State *L);

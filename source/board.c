@@ -5,16 +5,10 @@
 #include <conio.h>
 #include <stdarg.h>
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
 #include "board.h"
 
 
 //---------------- Private ------------------------------//
-
-#define SER_BUFF_LEN 128
 
 /// Registered client callback.
 static fpDigInterrupt p_digInterrupt;
@@ -25,9 +19,9 @@ static fpTimerInterrupt p_timerInterrupt;
 /// Interrupts enabled?
 static bool p_enbInterrupts;
 
-/// Serial receive buffer to collect input chars.
-/// In this simulator we will used stdio for serial IO.
+/// Serial receive buffer to collect input chars. In this simulator we will used stdio for serial IO.
 static char p_rxBuff[SER_BUFF_LEN];
+
 
 //---------------- Simulator Stuff -----------------------//
 
@@ -36,15 +30,10 @@ static bool p_digPinsSim[NUM_DIG_PINS];
 
 /// Windows periodic timer.
 #ifdef WIN32
+#include <windows.h>
 static HANDLE p_winHandle;
 static VOID CALLBACK p_winTimerHandler(PVOID, BOOLEAN);
-VOID CALLBACK p_winTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFired)
-{
-    (void)lpParameter;
-    (void)TimerOrWaitFired;
-    // Call our timer.
-    p_timerInterrupt();
-}
+VOID CALLBACK p_winTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFired) { p_timerInterrupt(); }
 #endif
 
 
@@ -222,12 +211,11 @@ status_t board_serWriteLine(const char* format, ...)
 {
     status_t stat = STATUS_OK;
 
-    #define LINE_LEN 100
-    static char buff[LINE_LEN];
+    static char buff[SER_BUFF_LEN];
 
     va_list args;
     va_start(args, format);
-    vsnprintf(buff, LINE_LEN-1, format, args);
+    vsnprintf(buff, SER_BUFF_LEN-1, format, args);
 
     // Add a prompt.
     printf("%s\r\n>", buff);

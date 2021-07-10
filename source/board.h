@@ -6,6 +6,8 @@
 
 /// @brief Interface to the hardware board. Ours is simulated, yours would be completely different.
 
+/// Max line.
+#define SER_BUFF_LEN 128
 
 /// Physical IO.
 #define NUM_DIG_PINS 16
@@ -90,8 +92,9 @@ status_t board_serWriteLine(const char* format, ...);
 status_t board_regTimerInterrupt(unsigned int msec, fpTimerInterrupt fp);
 
 /// Get number of microseconds since beginning.
+/// In an embedded system this would be supplied by a hardware clock source.
 /// @return Microseconds.
-uint64_t board_getCurrentUsec(void);//TODOP
+uint64_t board_getCurrentUsec(void);
 
 
 #endif // BOARD_H
