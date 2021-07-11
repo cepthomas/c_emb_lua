@@ -11,13 +11,13 @@
 //---------------- Private ------------------------------//
 
 /// Registered client callback.
-static board_DigInterrupt_t p_dig_interrupt;
+static board_DigInterrupt_t p_dig_interrupt = NULL;
 
 /// Registered client callback.
-static board_TimerInterrupt_t p_timer_interrupt;
+static board_TimerInterrupt_t p_timer_interrupt = NULL;
 
 /// Interrupts enabled?
-static bool p_enb_interrupts;
+static bool p_enb_interrupts = false;
 
 /// Serial receive buffer to collect input chars. In this simulator we will used stdio for serial IO.
 static char p_rx_buff[SER_BUFF_LEN];
@@ -32,8 +32,7 @@ static bool p_dig_pins_sim[NUM_DIG_PINS];
 #ifdef WIN32
 #include <windows.h>
 static HANDLE p_win_handle;
-static VOID CALLBACK p_WinTimerHandler(PVOID, BOOLEAN);
-VOID CALLBACK p_WinTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFired) { p_timer_interrupt(); }
+static VOID CALLBACK p_WinTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFired) { p_timer_interrupt(); }
 #endif
 
 

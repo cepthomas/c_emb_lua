@@ -1,4 +1,4 @@
-# c-emb-lua
+# c_emb_lua
 A minimal example of a C embedded executable with lua script processor.
 
 - Pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.

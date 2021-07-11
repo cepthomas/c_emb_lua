@@ -5,11 +5,12 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
 # needs -g to debug.
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Werror -Wno-deprecated-declarations -Wno-unused-variable")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-deprecated-declarations")
 
-# add_compile_definitions(xxx=1)
-
-include_directories(source lua-5.3.5/src)
+include_directories(
+    source
+    lua-5.3.5/src
+)
 
 # Source files.
 add_executable(cemblua
