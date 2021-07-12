@@ -10,7 +10,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-deprecated-declarations")
 include_directories(
     source
     lua-5.3.5/src
-)
+    )
 
 # Source files.
 add_executable(cemblua
