@@ -51,29 +51,29 @@ static void p_DigInputHandler(unsigned int which, bool value);
 /// @brief Process for all commands from clients.
 /// @param sin The arbitrary command and args.
 /// @return status
-static status_t p_ProcessCommand(const char* sin);
+static int p_ProcessCommand(const char* sin);
 
 /// @brief Starts the script running.
 /// @param fn Script filename.
 /// @return status
-static status_t p_StartScript(const char* fn);
+static int p_StartScript(const char* fn);
 
 /// @brief Stop the currently running script.
 /// @return status
-static status_t p_StopScript(void);
+static int p_StopScript(void);
 
 /// @brief Common handler for lua runtime execution errors.
 /// @param lstat The lua status value.
 /// @return status
-static status_t p_ProcessExecError(int lstat);
+static int p_ProcessExecError(int lstat);
 
 
 //---------------- Public Implementation -------------//
 
 //----------------------------------------------------//
-status_t exec_Init(void)
+int exec_Init(void)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     // Init stuff.
     p_loop_running = false;
@@ -101,9 +101,9 @@ status_t exec_Init(void)
 }
 
 //---------------------------------------------------//
-status_t exec_Run(const char* fn)
+int exec_Run(const char* fn)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     // Let her rip!
     board_EnableInterrupts(true);
@@ -112,7 +112,7 @@ status_t exec_Run(const char* fn)
     p_StartScript(fn);
 
     // Forever loop.
-    while(p_loop_running && stat == STATUS_OK)
+    while(p_loop_running && stat == RS_PASS)
     {
         stat = board_SerReadLine(p_rx_buf, SER_BUFF_LEN);
 
@@ -129,13 +129,13 @@ status_t exec_Run(const char* fn)
     p_StopScript(); // just in case
     lua_close(p_lstate_main);
 
-    return stat == STATUS_EXIT ? 0 : stat;
+    return stat == RS_EXIT ? 0 : stat;
 }
 
 //---------------- Private --------------------------//
 
 //---------------------------------------------------//
-status_t p_StartScript(const char* fn)
+int p_StartScript(const char* fn)
 {
     int lstat = LUA_OK;
 
@@ -188,7 +188,7 @@ status_t p_StartScript(const char* fn)
         p_ProcessExecError(lstat);
     }
 
-    return lstat == LUA_OK ? STATUS_OK : STATUS_ERROR;
+    return lstat == LUA_OK ? RS_PASS : RS_ERR;
 }
 
 //---------------------------------------------------//
@@ -241,9 +241,9 @@ void p_DigInputHandler(unsigned int which, bool value)
 }
 
 //---------------------------------------------------//
-status_t p_ProcessCommand(const char* sin)
+int p_ProcessCommand(const char* sin)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     // What are the options.
     char* opts[MAX_NUM_OPTS];
@@ -269,7 +269,7 @@ status_t p_ProcessCommand(const char* sin)
             case 'x':
                 p_StopScript();
                 valid = true;
-                stat = STATUS_EXIT;
+                stat = RS_EXIT;
                 break;
 
             case 'c':
@@ -328,9 +328,9 @@ status_t p_ProcessCommand(const char* sin)
 }
 
 //---------------------------------------------------//
-status_t p_StopScript()
+int p_StopScript()
 {
-    status_t status = STATUS_OK;
+    int status = RS_PASS;
 
     p_script_running = false;
     
@@ -338,9 +338,9 @@ status_t p_StopScript()
 }
 
 //---------------------------------------------------//
-status_t p_ProcessExecError(int lstat)
+int p_ProcessExecError(int lstat)
 {
-    status_t status = STATUS_OK;
+    int status = RS_PASS;
 
     p_script_running = false;
 

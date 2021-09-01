@@ -39,9 +39,9 @@ static VOID CALLBACK p_WinTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFir
 //---------------- Public Implementation -----------------//
 
 //--------------------------------------------------------//
-status_t board_Init(void)
+int board_Init(void)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     memset(p_rx_buff, 0, SER_BUFF_LEN);
 
@@ -58,9 +58,9 @@ status_t board_Init(void)
 }
 
 //--------------------------------------------------------//
-status_t board_Destroy(void)
+int board_Destroy(void)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
 #ifdef WIN32
     DeleteTimerQueueTimer(NULL, p_win_handle, NULL);
@@ -71,9 +71,9 @@ status_t board_Destroy(void)
 }
 
 //--------------------------------------------------------//
-status_t board_EnableInterrupts(bool enb)
+int board_EnableInterrupts(bool enb)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     p_enb_interrupts = enb;
 
@@ -81,9 +81,9 @@ status_t board_EnableInterrupts(bool enb)
 }
 
 //--------------------------------------------------------//
-status_t board_RegDigInterrupt(board_DigInterrupt_t fp)
+int board_RegDigInterrupt(board_DigInterrupt_t fp)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     p_dig_interrupt = fp;
 
@@ -91,16 +91,16 @@ status_t board_RegDigInterrupt(board_DigInterrupt_t fp)
 }
 
 //--------------------------------------------------------//
-status_t board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp)
+int board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     p_timer_interrupt = fp;
 
 #ifdef WIN32
     if(CreateTimerQueueTimer(&p_win_handle, NULL, (WAITORTIMERCALLBACK)p_WinTimerHandler, NULL, msec, msec, WT_EXECUTEINTIMERTHREAD) == 0)
     {
-        stat = STATUS_ERROR;
+        stat = RS_ERR;
     }
 #endif
 
@@ -118,9 +118,9 @@ uint64_t board_GetCurrentUsec(void)
 }
 
 //--------------------------------------------------------//
-status_t board_WriteDig(unsigned int pin, bool value)
+int board_WriteDig(unsigned int pin, bool value)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     if(pin < NUM_DIG_PINS)
     {
@@ -128,16 +128,16 @@ status_t board_WriteDig(unsigned int pin, bool value)
     }
     else
     {
-        stat = STATUS_ERROR;
+        stat = RS_ERR;
     }
 
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_ReadDig(unsigned int pin, bool* value)
+int board_ReadDig(unsigned int pin, bool* value)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     if(pin < NUM_DIG_PINS)
     {
@@ -145,18 +145,18 @@ status_t board_ReadDig(unsigned int pin, bool* value)
     }
     else
     {
-        stat = STATUS_ERROR;
+        stat = RS_ERR;
     }
 
     return stat;
 }
 
 //--------------------------------------------------------//
-status_t board_SerOpen(unsigned int channel)
+int board_SerOpen(unsigned int channel)
 {
     (void)channel;
 
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     // Prompt.
     board_SerWriteLine("\r\n>");
@@ -165,9 +165,9 @@ status_t board_SerOpen(unsigned int channel)
 }
 
 //--------------------------------------------------------//
-status_t board_SerReadLine(char* buff, unsigned int num)
+int board_SerReadLine(char* buff, unsigned int num)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     // Default.
     buff[0] = 0;
@@ -206,9 +206,9 @@ status_t board_SerReadLine(char* buff, unsigned int num)
 }
 
 //--------------------------------------------------------//
-status_t board_SerWriteLine(const char* format, ...)
+int board_SerWriteLine(const char* format, ...)
 {
-    status_t stat = STATUS_OK;
+    int stat = RS_PASS;
 
     static char buff[SER_BUFF_LEN];
 

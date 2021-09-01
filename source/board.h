@@ -32,16 +32,16 @@ typedef void (*board_TimerInterrupt_t)(void);
 
 /// Initialize the component.
 /// @return Status.
-status_t board_Init(void);
+int board_Init(void);
 
 /// Turn interrupts on/off.
 /// @param env On/off.
 /// @return Status.
-status_t board_EnableInterrupts(bool enb);
+int board_EnableInterrupts(bool enb);
 
 /// Clean up component resources.
 /// @return Status.
-status_t board_Destroy(void);
+int board_Destroy(void);
 
 
 //---------------- Digital IO Functions -----------------//
@@ -49,19 +49,19 @@ status_t board_Destroy(void);
 /// Client registration for digital input interrupt.
 /// @param fp Callback function.
 /// @return Status.
-status_t board_RegDigInterrupt(board_DigInterrupt_t fp);
+int board_RegDigInterrupt(board_DigInterrupt_t fp);
 
 /// Write a digital output.
 /// @param pin Specific pin number.
 /// @param value Value to write.
 /// @return Status.
-status_t board_WriteDig(unsigned int pin, bool value);
+int board_WriteDig(unsigned int pin, bool value);
 
 /// Read a digital input or output.
 /// @param pin Specific pin number.
 /// @param value Where to place the value.
 /// @return Status.
-status_t board_ReadDig(unsigned int pin, bool* value);
+int board_ReadDig(unsigned int pin, bool* value);
 
 
 //---------------- Serial Functions -----------------//
@@ -69,18 +69,18 @@ status_t board_ReadDig(unsigned int pin, bool* value);
 /// Open a serial port.
 /// @param channel Specific channel.
 /// @return Status.
-status_t board_SerOpen(unsigned int channel);
+int board_SerOpen(unsigned int channel);
 
 /// Read a line from a serial channel. This does not block. Buffers chars until EOL.
 /// @param buff Data buffer. Will be a zero-terminated string.
 /// @param num Length of buff.
 /// @return Status.
-status_t board_SerReadLine(char* buff, unsigned int num);
+int board_SerReadLine(char* buff, unsigned int num);
 
 /// Write a line to a serial channel.
 /// @param buff What to send as a zero-terminated string.
 /// @return Status.
-status_t board_SerWriteLine(const char* format, ...);
+int board_SerWriteLine(const char* format, ...);
 
 
 //---------------- Timer Functions -----------------//
@@ -89,7 +89,7 @@ status_t board_SerWriteLine(const char* format, ...);
 /// @param msec How often in msec.
 /// @param fp Callback function.
 /// @return Status.
-status_t board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp);
+int board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp);
 
 /// Get number of microseconds since beginning.
 /// In an embedded system this would be supplied by a hardware clock source.
