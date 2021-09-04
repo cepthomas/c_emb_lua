@@ -5,14 +5,14 @@
 
 //--------------------------------------------------------//
 
-int p_SerWrite(lua_State* L)
+int p_CliWrite(lua_State* L)
 {
     ///// Get function arguments.
     const char* info = NULL;
     luainterop_GetArgStr(L, 1, &info);
 
     ///// Do the work.
-    board_SerWriteLine(info);
+    board_CliWriteLine(info);
 
     ///// Push return values.
     return 0; // number of results
@@ -72,7 +72,7 @@ int p_DigIn(lua_State* L)
 static const luaL_Reg luatoclib[] =
 {
 //  { lua func, c func }
-    { "serwr",  p_SerWrite },
+    { "cliwr",  p_CliWrite },
     { "msec",   p_Msec },
     { "digout", p_DigOut },
     { "digin",  p_DigIn },

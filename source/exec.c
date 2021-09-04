@@ -37,10 +37,10 @@ static int p_tick;
 /// Last tick time.
 static unsigned int p_last_tick_time;
 
-/// Serial contents.
-static char p_rx_buf[SER_BUFF_LEN];
+/// CLI contents.
+static char p_cli_buf[CLI_BUFF_LEN];
 
-/// System tick timer. Handle script yielding and serial IO.
+/// System tick timer. Handles coroutine yielding and CLI.
 static void p_TimerHandler(void);
 
 /// Digital input handler.
@@ -67,6 +67,9 @@ static int p_StopScript(void);
 /// @return status
 static int p_ProcessExecError(int lstat);
 
+/// @brief Print usage.
+static void p_Usage(void);
+
 
 //---------------- Public Implementation -------------//
 
@@ -87,7 +90,7 @@ int exec_Init(void)
 
     // Set up all board-specific stuff.
     stat = board_RegTimerInterrupt(SYS_TICK_MSEC, p_TimerHandler);
-    stat = board_SerOpen(0);
+    stat = board_CliOpen(0);
 
     // Register for input interrupts.
     stat = board_RegDigInterrupt(p_DigInputHandler);
@@ -109,21 +112,23 @@ int exec_Run(const char* fn)
     board_EnableInterrupts(true);
     p_loop_running = true;
 
+    p_Usage();
+
     p_StartScript(fn);
 
     // Forever loop.
     while(p_loop_running && stat == RS_PASS)
     {
-        stat = board_SerReadLine(p_rx_buf, SER_BUFF_LEN);
+        stat = board_CliReadLine(p_cli_buf, CLI_BUFF_LEN);
 
-        if(strlen(p_rx_buf) > 0)
+        if(strlen(p_cli_buf) > 0)
         {
-            stat = p_ProcessCommand(p_rx_buf);
+            stat = p_ProcessCommand(p_cli_buf);
         }
     }
 
     // Done, close up shop.
-    board_SerWriteLine("Goodbye - come back soon!");
+    board_CliWriteLine("Goodbye - come back soon!");
     board_EnableInterrupts(false);
 
     p_StopScript(); // just in case
@@ -174,7 +179,7 @@ int p_StartScript(const char* fn)
             case LUA_OK:
                 // If script is not long running, it is complete now.
                 p_script_running = false;
-                board_SerWriteLine("Finished script.");
+                board_CliWriteLine("Finished script.");
                 break;
 
             default:
@@ -194,20 +199,15 @@ int p_StartScript(const char* fn)
 //---------------------------------------------------//
 void p_TimerHandler(void)
 {
-    // This arrives every SYS_TICK_MSEC.
-    // Do the real work of the application.
-
+    // Do the periodic real work of the application.
     p_tick++;
 
-    // Crude responsiveness measurement.
-    unsigned int t = common_GetMsec(); // can range from 15 to ~ 32
-    if(t - p_last_tick_time > 2 * SYS_TICK_MSEC)
-    {
-        //common_log("Tick seems to have taken too long:%d", t - p_lastTickTime);
-    }
+    // Crude responsiveness measurement. Win timer is sloppy.
+    unsigned int t = common_GetMsec(); // can range from 15 to ~32
+    // unsigned int dur = t - p_last_tick_time;
     p_last_tick_time = t;
 
-    // Script stuff.
+    // Script stuff, coroutine handling.
     if(p_script_running && p_lstate_script != NULL)
     {
         // Find out where we are in the script sequence.
@@ -216,14 +216,14 @@ void p_TimerHandler(void)
         switch(lstat)
         {
             case LUA_YIELD:
-                // Still running - continue the script.
+                // Script is still running - continue.
                 lua_resume(p_lstate_script, 0, 0);
                 break;
 
             case LUA_OK:
-                // It is complete now.
+                // Script is complete now.
                 p_script_running = false;
-                board_SerWriteLine("Finished script.");
+                board_CliWriteLine("Finished script.");
                 break;
 
             default:
@@ -237,7 +237,7 @@ void p_TimerHandler(void)
 //---------------------------------------------------//
 void p_DigInputHandler(unsigned int which, bool value)
 {
-    ctolua_HandleInput(p_lstate_script, which, value);
+    ctolua_HandleDigInput(p_lstate_script, which, value);
 }
 
 //---------------------------------------------------//
@@ -281,7 +281,7 @@ int p_ProcessCommand(const char* sin)
                     common_Strtoi(opts[1], &x);
                     common_Strtoi(opts[2], &y);
                     ctolua_Calc(p_lstate_script, x, y, &res);
-                    board_SerWriteLine("%d + %d = %g", x, y, res);
+                    board_CliWriteLine("%d + %d = %g", x, y, res);
                     valid = true;
                 }
                 break;
@@ -293,7 +293,7 @@ int p_ProcessCommand(const char* sin)
                     bool value;
                     common_Strtoi(opts[1], &pin);
                     board_ReadDig((unsigned int)pin, &value);
-                    board_SerWriteLine("read pin:%d = %d", pin, value);
+                    board_CliWriteLine("read pin:%d = %d", pin, value);
                     valid = true;
                 }
                 break;
@@ -306,8 +306,8 @@ int p_ProcessCommand(const char* sin)
                     common_Strtoi(opts[1], &pin);
                     value = opts[2][0] == 't';
                     board_WriteDig((unsigned int)pin, value);
-                    board_SerWriteLine("write pin:%d = %d", pin, value);
-                    ctolua_HandleInput(p_lstate_script, (unsigned int)pin, value);
+                    board_CliWriteLine("write pin:%d = %d", pin, value);
+                    ctolua_HandleDigInput(p_lstate_script, (unsigned int)pin, value);
                     valid = true;
                 }
                 break;
@@ -317,11 +317,8 @@ int p_ProcessCommand(const char* sin)
     if(!valid)
     {
         // usage
-        board_SerWriteLine("Invalid cmd:%s, try one of these:", sin);
-        board_SerWriteLine("  exit: x");
-        board_SerWriteLine("  calculator: c num1 num2");
-        board_SerWriteLine("  read io pin: r pin");
-        board_SerWriteLine("  write io pin: w pin val");
+        board_CliWriteLine("Invalid cmd:%s: ", sin);
+        p_Usage();
     }
 
     return stat;
@@ -355,11 +352,21 @@ int p_ProcessExecError(int lstat)
         case LUA_ERRMEM:    strcpy(buff, "LUA_ERRMEM"); break;
         case LUA_ERRGCMM:   strcpy(buff, "LUA_ERRGCMM"); break;
         case LUA_ERRERR:    strcpy(buff, "LUA_ERRERR"); break;
-        default: snprintf(buff, 20, "%d", lstat); break;
+        default:            snprintf(buff, 20, "%d", lstat); break;
     }
 
     // The error string from Lua.
-    board_SerWriteLine("%s: %s", buff, lua_tostring(p_lstate_script, -1));
+    board_CliWriteLine("%s: %s", buff, lua_tostring(p_lstate_script, -1));
 
     return status;
+}
+
+//---------------------------------------------------//
+void p_Usage(void)
+{
+    board_CliWriteLine("Supported commands:");
+    board_CliWriteLine("  exit: x");
+    board_CliWriteLine("  calculator: c #1 #2");
+    board_CliWriteLine("  read io pin: r #");
+    board_CliWriteLine("  write io pin: w # t/f");
 }

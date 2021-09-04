@@ -10,17 +10,17 @@
 
 //---------------- Private ------------------------------//
 
-/// Registered client callback.
+/// Registered client callback for IO pin changes.
 static board_DigInterrupt_t p_dig_interrupt = NULL;
 
-/// Registered client callback.
+/// Registered client callback for periodic timer ticks.
 static board_TimerInterrupt_t p_timer_interrupt = NULL;
 
 /// Interrupts enabled?
 static bool p_enb_interrupts = false;
 
-/// Serial receive buffer to collect input chars. In this simulator we will used stdio for serial IO.
-static char p_rx_buff[SER_BUFF_LEN];
+/// CLI buffer to collect input chars. This simulator uses stdio, a real system would probably use a serial port.
+static char p_cli_buff[CLI_BUFF_LEN];
 
 
 //---------------- Simulator Stuff -----------------------//
@@ -43,7 +43,7 @@ int board_Init(void)
 {
     int stat = RS_PASS;
 
-    memset(p_rx_buff, 0, SER_BUFF_LEN);
+    memset(p_cli_buff, 0, CLI_BUFF_LEN);
 
     p_enb_interrupts = false;
     p_dig_interrupt = NULL;
@@ -152,20 +152,20 @@ int board_ReadDig(unsigned int pin, bool* value)
 }
 
 //--------------------------------------------------------//
-int board_SerOpen(unsigned int channel)
+int board_CliOpen(unsigned int channel)
 {
     (void)channel;
 
     int stat = RS_PASS;
 
     // Prompt.
-    board_SerWriteLine("\r\n>");
+    board_CliWriteLine("\r\n>");
 
     return stat;
 }
 
 //--------------------------------------------------------//
-int board_SerReadLine(char* buff, unsigned int num)
+int board_CliReadLine(char* buff, unsigned int num)
 {
     int stat = RS_PASS;
 
@@ -184,20 +184,20 @@ int board_SerReadLine(char* buff, unsigned int num)
 
             case '\r':
                 // Echo return.
-                board_SerWriteLine("");
+                board_CliWriteLine("");
                 // Copy to client buff.
-                strncpy(buff, p_rx_buff, num);
+                strncpy(buff, p_cli_buff, num);
                 // Clear.
-                memset(p_rx_buff, 0, SER_BUFF_LEN);
+                memset(p_cli_buff, 0, CLI_BUFF_LEN);
                 // Echo prompt.
-                board_SerWriteLine("");
+                board_CliWriteLine("");
                 break;
 
             default:
                 // Echo char.
                 putchar(c);
                 // Save it.
-                p_rx_buff[strlen(p_rx_buff)] = c;
+                p_cli_buff[strlen(p_cli_buff)] = c;
                 break;
         }
     }
@@ -206,15 +206,15 @@ int board_SerReadLine(char* buff, unsigned int num)
 }
 
 //--------------------------------------------------------//
-int board_SerWriteLine(const char* format, ...)
+int board_CliWriteLine(const char* format, ...)
 {
     int stat = RS_PASS;
 
-    static char buff[SER_BUFF_LEN];
+    static char buff[CLI_BUFF_LEN];
 
     va_list args;
     va_start(args, format);
-    vsnprintf(buff, SER_BUFF_LEN-1, format, args);
+    vsnprintf(buff, CLI_BUFF_LEN-1, format, args);
 
     // Add a prompt.
     printf("%s\r\n>", buff);

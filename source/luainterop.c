@@ -68,11 +68,11 @@ void luainterop_GetArgStr(lua_State* L, int index, const char** ret)
 //--------------------------------------------------------//
 void luainterop_LuaError(lua_State* L, const char* format, ...)
 {
-    static char buff[SER_BUFF_LEN];
+    static char buff[CLI_BUFF_LEN];
 
     va_list args;
     va_start(args, format);
-    vsnprintf(buff, SER_BUFF_LEN-1, format, args);
+    vsnprintf(buff, CLI_BUFF_LEN-1, format, args);
 
     // Dump stacktrace.
     luaL_traceback(L, L, NULL, 1);
@@ -85,7 +85,7 @@ void luainterop_LuaError(lua_State* L, const char* format, ...)
 //--------------------------------------------------------//
 void luainterop_DumpStack(lua_State *L)
 {
-    char buff[SER_BUFF_LEN];
+    char buff[CLI_BUFF_LEN];
 
     for(int i = lua_gettop(L); i >= 1; i--)
     {
@@ -93,19 +93,19 @@ void luainterop_DumpStack(lua_State *L)
 
         switch(t)
         {
-            case LUA_TSTRING:        snprintf(buff, SER_BUFF_LEN, "ind:%d string:%s ", i, lua_tostring(L, i));   break;
-            case LUA_TBOOLEAN:       snprintf(buff, SER_BUFF_LEN, "ind:%d bool:%s ", i, lua_toboolean(L, i) ? "true" : "false");   break;
-            case LUA_TNUMBER:        snprintf(buff, SER_BUFF_LEN, "ind:%d number:%g ", i, lua_tonumber(L, i));   break;
-            case LUA_TNIL:           snprintf(buff, SER_BUFF_LEN, "ind:%d nil", i);   break;
-            case LUA_TNONE:          snprintf(buff, SER_BUFF_LEN, "ind:%d none", i);   break;
+            case LUA_TSTRING:        snprintf(buff, CLI_BUFF_LEN, "ind:%d string:%s ", i, lua_tostring(L, i));   break;
+            case LUA_TBOOLEAN:       snprintf(buff, CLI_BUFF_LEN, "ind:%d bool:%s ", i, lua_toboolean(L, i) ? "true" : "false");   break;
+            case LUA_TNUMBER:        snprintf(buff, CLI_BUFF_LEN, "ind:%d number:%g ", i, lua_tonumber(L, i));   break;
+            case LUA_TNIL:           snprintf(buff, CLI_BUFF_LEN, "ind:%d nil", i);   break;
+            case LUA_TNONE:          snprintf(buff, CLI_BUFF_LEN, "ind:%d none", i);   break;
             case LUA_TFUNCTION:
             case LUA_TTABLE:
             case LUA_TTHREAD:
             case LUA_TUSERDATA:
-            case LUA_TLIGHTUSERDATA: snprintf(buff, SER_BUFF_LEN, "ind:%d %s:%p ", i, lua_typename(L, t), lua_topointer(L, i));   break;
-            default:                 snprintf(buff, SER_BUFF_LEN, "ind:%d type:%d", i, t);   break;
+            case LUA_TLIGHTUSERDATA: snprintf(buff, CLI_BUFF_LEN, "ind:%d %s:%p ", i, lua_typename(L, t), lua_topointer(L, i));   break;
+            default:                 snprintf(buff, CLI_BUFF_LEN, "ind:%d type:%d", i, t);   break;
         }
 
-        board_SerWriteLine(buff);
+        board_CliWriteLine(buff);
     }
 }

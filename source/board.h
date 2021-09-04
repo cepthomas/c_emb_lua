@@ -7,7 +7,7 @@
 /// @brief Interface to the hardware board. Ours is simulated, yours would be completely different.
 
 /// Max line.
-#define SER_BUFF_LEN 128
+#define CLI_BUFF_LEN 128
 
 /// Physical IO.
 #define NUM_DIG_PINS 16
@@ -64,23 +64,23 @@ int board_WriteDig(unsigned int pin, bool value);
 int board_ReadDig(unsigned int pin, bool* value);
 
 
-//---------------- Serial Functions -----------------//
+//---------------- CLI Functions -----------------//
 
-/// Open a serial port.
+/// Open a cli.
 /// @param channel Specific channel.
 /// @return Status.
-int board_SerOpen(unsigned int channel);
+int board_CliOpen(unsigned int channel);
 
-/// Read a line from a serial channel. This does not block. Buffers chars until EOL.
+/// Read a line from a cli channel. This does not block. Buffers chars until EOL.
 /// @param buff Data buffer. Will be a zero-terminated string.
-/// @param num Length of buff.
+/// @param num Max length of buff.
 /// @return Status.
-int board_SerReadLine(char* buff, unsigned int num);
+int board_CliReadLine(char* buff, unsigned int num);
 
-/// Write a line to a serial channel.
+/// Write a line to a cli channel.
 /// @param buff What to send as a zero-terminated string.
 /// @return Status.
-int board_SerWriteLine(const char* format, ...);
+int board_CliWriteLine(const char* format, ...);
 
 
 //---------------- Timer Functions -----------------//

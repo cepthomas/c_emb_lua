@@ -53,7 +53,7 @@ void ctolua_Calc(lua_State* L, int x, int y, double* res)
 }
 
 //--------------------------------------------------------//
-void ctolua_HandleInput(lua_State* L, unsigned int pin, bool value)
+void ctolua_HandleDigInput(lua_State* L, unsigned int pin, bool value)
 {
     int lstat = 0;
 
