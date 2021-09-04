@@ -6,10 +6,6 @@ It demonstrates:
 - Calling C functions with args from the script side.
 - Simulated embedded system with a hardware level, CLI for control, and exec loop running everything.
 
-Build it then:
-- `cd build`
-- `cemblua demoapp.lua`
-
 # Build
 - Pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.
 - A VS Code workspace using mingw and CMake is supplied. Your PATH needs to include mingw.

@@ -166,7 +166,6 @@ int p_StartScript(const char* fn)
         // A quick test. Do this after loading the file then running it.
         double d;
         ctolua_Calc(p_lstate_script, 11, 22, &d);
-        // common_log(LOG_INFO, "ctolua_someCalc():%f", d);
 
         switch(lstat)
         {
@@ -278,11 +277,12 @@ int p_ProcessCommand(const char* sin)
                     int x = -1;
                     int y = -1;
                     double res = -1;
-                    common_Strtoi(opts[1], &x);
-                    common_Strtoi(opts[2], &y);
-                    ctolua_Calc(p_lstate_script, x, y, &res);
-                    board_CliWriteLine("%d + %d = %g", x, y, res);
-                    valid = true;
+                    if(common_Strtoi(opts[1], &x) && common_Strtoi(opts[2], &y))
+                    {
+                        ctolua_Calc(p_lstate_script, x, y, &res);
+                        board_CliWriteLine("%d + %d = %g", x, y, res);
+                        valid = true;
+                    }
                 }
                 break;
 
@@ -290,11 +290,13 @@ int p_ProcessCommand(const char* sin)
                 if(oind == 2)
                 {
                     int pin = -1;
-                    bool value;
-                    common_Strtoi(opts[1], &pin);
-                    board_ReadDig((unsigned int)pin, &value);
-                    board_CliWriteLine("read pin:%d = %d", pin, value);
-                    valid = true;
+                    bool bval;
+                    if(common_Strtoi(opts[1], &pin))
+                    {
+                        board_ReadDig((unsigned int)pin, &bval);
+                        board_CliWriteLine("read pin:%d = %s", pin, bval ? "t" : "f");
+                        valid = true;
+                    }
                 }
                 break;
 
@@ -303,12 +305,16 @@ int p_ProcessCommand(const char* sin)
                 {
                     int pin = -1;
                     bool value;
-                    common_Strtoi(opts[1], &pin);
-                    value = opts[2][0] == 't';
-                    board_WriteDig((unsigned int)pin, value);
-                    board_CliWriteLine("write pin:%d = %d", pin, value);
-                    ctolua_HandleDigInput(p_lstate_script, (unsigned int)pin, value);
-                    valid = true;
+
+                    if(common_Strtoi(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
+                    {
+                        value = opts[2][0] == 't';
+                        board_WriteDig((unsigned int)pin, value);
+                        //board_CliWriteLine("write pin:%d = %d", pin, value);
+                        //ctolua_HandleDigInput(p_lstate_script, (unsigned int)pin, value);
+                        valid = true;
+                        
+                    }
                 }
                 break;
         }

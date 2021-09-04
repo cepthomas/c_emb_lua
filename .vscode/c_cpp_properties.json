@@ -8,7 +8,7 @@
             "name": "c_emb_lua",
             "includePath": [
                 "${workspaceFolder}/source",
-                "${workspaceFolder}/lua-5.3.5/src"
+                "${workspaceFolder}/lua-5.3.5"
             ],
             "defines": [
                 "abc"
