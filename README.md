@@ -12,7 +12,7 @@ It demonstrates:
 - Run build.cmd to make the executables.
 - It supports only windows (search WIN32) right now but should be easy to convert to linux or bare metal.
 
-# Source
+# Files
 - [Conventions](https://github.com/cepthomas/c_bag_of_tricks/blob/master/CONVENTIONS.md).
 - [Modular model](https://github.com/cepthomas/c_modular).
 - main.c - Entry stub calls exec.
