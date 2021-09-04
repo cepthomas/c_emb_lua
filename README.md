@@ -28,6 +28,7 @@ Build it then:
 - luainterop.c/h - Generic stuff for talking with lua. This could be in a lib.
 - demoapp.lua - Lua script for a simplistic multithreaded coroutine application. Uses luatoc.
 - utils.lua - Used by demoapp.lua.
+- lua-5.3.5/* - lua source code for this application.
 
 # Licenses
 [This repo](https://github.com/cepthomas/c-emb-lua/blob/master/LICENSE)
