@@ -6,6 +6,8 @@
 
 /// @brief Interface to the hardware board. Ours is simulated, yours would be completely different.
 
+//---------------- Public API ----------------------//
+
 /// Max line.
 #define CLI_BUFF_LEN 128
 

@@ -28,11 +28,6 @@ static const int RS_FAIL = -2;
 /// Defines normal exit status.
 static const int RS_EXIT = -3;
 
-/// Validate pointer arg. If fails, early returns err.
-/// @param ptr Pointer.
-/// @param err Error value to return in case of failure.
-#define VAL_PTR(ptr, err) if(ptr == NULL) { return err; }
-
 
 /// Initialize the module.
 /// @return Status.

@@ -7,6 +7,9 @@
 #include "luainterop.h"
 
 
+// TODO add a string describing error.
+
+
 //---------------- Private --------------------------//
 
 
@@ -14,7 +17,7 @@
 
 
 //--------------------------------------------------------//
-void luainterop_GetArgInt(lua_State* L, int index, int* ret)
+int luainterop_GetArgInt(lua_State* L, int index, int* ret)
 {
     if(lua_isnumber(L, index) > 0)
     {
@@ -24,10 +27,12 @@ void luainterop_GetArgInt(lua_State* L, int index, int* ret)
     {
         luainterop_LuaError(L, "Invalid integer argument at index %d", index);
     }
+
+    return RS_PASS;
 }
 
 //--------------------------------------------------------//
-void luainterop_GetArgDbl(lua_State* L, int index, double* ret)
+int luainterop_GetArgDbl(lua_State* L, int index, double* ret)
 {
     if(lua_isnumber(L, index) > 0)
     {
@@ -37,10 +42,12 @@ void luainterop_GetArgDbl(lua_State* L, int index, double* ret)
     {
         luainterop_LuaError(L, "Invalid double argument at index %d", index);
     }
+
+    return RS_PASS;
 }
 
 //--------------------------------------------------------//
-void luainterop_GetArgBool(lua_State* L, int index, bool* ret)
+int luainterop_GetArgBool(lua_State* L, int index, bool* ret)
 {
     if(lua_isboolean(L, index) > 0)
     {
@@ -50,10 +57,12 @@ void luainterop_GetArgBool(lua_State* L, int index, bool* ret)
     {
         luainterop_LuaError(L, "Invalid bool argument at index %d", index);
     }
+
+    return RS_PASS;
 }
 
 //--------------------------------------------------------//
-void luainterop_GetArgStr(lua_State* L, int index, const char** ret)
+int luainterop_GetArgStr(lua_State* L, int index, const char** ret)
 {
     if(lua_isstring(L, index) > 0)
     {
@@ -63,10 +72,12 @@ void luainterop_GetArgStr(lua_State* L, int index, const char** ret)
     {
         luainterop_LuaError(L, "Invalid string argument at index %d", index);
     }
+
+    return RS_PASS;
 }
 
 //--------------------------------------------------------//
-void luainterop_LuaError(lua_State* L, const char* format, ...)
+int luainterop_LuaError(lua_State* L, const char* format, ...)
 {
     static char buff[CLI_BUFF_LEN];
 
@@ -80,10 +91,12 @@ void luainterop_LuaError(lua_State* L, const char* format, ...)
 
     lua_pushstring(L, buff);
     lua_error(L); // never returns
+
+    return RS_PASS;
 }
 
 //--------------------------------------------------------//
-void luainterop_DumpStack(lua_State *L)
+int luainterop_DumpStack(lua_State *L)
 {
     char buff[CLI_BUFF_LEN];
 
@@ -108,4 +121,6 @@ void luainterop_DumpStack(lua_State *L)
 
         board_CliWriteLine(buff);
     }
+
+    return RS_PASS;
 }
