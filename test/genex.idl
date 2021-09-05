@@ -1,0 +1,54 @@
+
+# type:
+# I: integer
+# S: string
+# N: number/double
+# B: boolean
+# T: struct
+# mod:
+# A: array
+
+
+########### meta ###############
+
+# namespace=genex_ns
+# desc="What is this"
+
+# TODO? describe lang in/out
+
+
+########### meta ###############
+
+# TODO num is optional
+enum=state_type, desc="Program statuses"
+    option=READY, num=1, desc="Ready to be scheduled"
+    option=IN_PROCESS, num=2, desc="Scheduled or running"
+    option=DONE, num=3, desc="All done"
+
+
+########### structs ###############
+
+# TODO nested structs, default values
+struct=my_data, desc="blabla"
+    field=f1, type=N, desc="field 1"
+    field=f2, type=I, desc="field 2"
+
+
+########### functions ###############
+
+# ctolua call lua functions from C
+func=calc, type=ctolua, desc="Dumb calculator"
+    arg=Op1, type=N, desc="op 1"
+    arg=Op2, type=N, desc="op 2"
+    # handler="calc_worker"
+    ret=Res1, type=N, desc="one result"
+    # ret=Res2, type=N, desc="another result"
+
+
+# luatoc call C functions from lua
+func=DigIn, type=luatoc, desc="Get dig input"
+    arg=pin, type=I, desc="pin number"
+    # arg=vvv, type=B, desc="bla"
+#>>    handler="board_ReadDig"
+    ret=state, type=B, desc="what it be"
+    # ret=Res2, type=N, desc="another result"
