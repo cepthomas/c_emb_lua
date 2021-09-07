@@ -155,10 +155,15 @@ int p_StartScript(const char* fn)
     // Load libraries.
     luaL_openlibs(p_lmain);
     li_preload(p_lmain);
-    li_context(p_lmain, "Hey diddle diddle", 90909);
 
     // Set up a second Lua thread so we can background execute the script.
     p_lscript = lua_newthread(p_lmain);
+    luaL_openlibs(p_lscript);
+    li_preload(p_lscript);
+
+    // Give it data.
+    my_data_t md = { 12.789, 90909, IN_PROCESS, "Hey diddle diddle" };
+    li_my_data(p_lscript, &md);
 
     // Load the script/file we are going to run.
     lstat = luaL_loadfile(p_lscript, fn);

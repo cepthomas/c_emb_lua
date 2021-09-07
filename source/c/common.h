@@ -14,6 +14,7 @@
 
 //---------------- Public Types ----------------------//
 
+/// Demonstration enum.
 typedef enum
 {
     READY = 1,      ///> Ready to be scheduled
@@ -22,12 +23,13 @@ typedef enum
 } state_type_t;
 
 
-/// $desc%
+/// Demonstration struct.
 typedef struct
 {
-    double f1;      ///> A value
-    int f2;         ///> Another value
-    const char* f3; ///> Yet another
+    double f1;          ///> A value
+    int f2;             ///> Another value
+    state_type_t state; ///> Another value
+    const char* f3;     ///> Yet another
 } my_data_t;
 
 

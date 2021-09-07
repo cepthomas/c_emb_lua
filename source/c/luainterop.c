@@ -46,21 +46,46 @@ int p_GetArgStr(lua_State* L, int index, const char** ret);
 //---------------- Public Implementation -------------//
 
 //--------------------------------------------------------//
-void li_context(lua_State* L, const char* s, int i)
+void li_my_data(lua_State* L, my_data_t* data)
 {
     // Create a new empty table and pushes it onto the stack.
     lua_newtable(L);
 
-    lua_pushstring(L, "script_string");
-    lua_pushstring(L, s);
+    lua_pushstring(L, "f1");
+    lua_pushnumber(L, data->f1);
     lua_settable(L, -3);
     
-    lua_pushstring(L, "script_int");
-    lua_pushinteger(L, i);
+    lua_pushstring(L, "f2");
+    lua_pushinteger(L, data->f2);
+    lua_settable(L, -3);
+    
+    lua_pushstring(L, "state");
+    lua_pushinteger(L, data->state);
+    lua_settable(L, -3);
+    
+    lua_pushstring(L, "f3");
+    lua_pushstring(L, data->f3);
     lua_settable(L, -3);
 
-    lua_setglobal(L, "script_context");
+    lua_setglobal(L, "my_data");
 }
+
+//--------------------------------------------------------//
+// void li_context(lua_State* L, const char* s, int i)
+// {
+//     // Create a new empty table and pushes it onto the stack.
+//     lua_newtable(L);
+
+//     lua_pushstring(L, "script_string");
+//     lua_pushstring(L, s);
+//     lua_settable(L, -3);
+    
+//     lua_pushstring(L, "script_int");
+//     lua_pushinteger(L, i);
+//     lua_settable(L, -3);
+
+//     lua_setglobal(L, "script_context");
+// }
 
 //--------------------------------------------------------//
 void li_calc(lua_State* L, int x, int y, double* res)

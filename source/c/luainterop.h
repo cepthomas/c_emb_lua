@@ -10,11 +10,10 @@
 
 //---------------- Call lua functions from C --------------------------//
 
-/// Function to fill context table. Could be a generic version. TODO use for a struct.
+/// Fille a table with a struct.
 /// @param L Lua environment.
-/// @param s One element - a string.
-/// @param i Another element - an int.
-void li_context(lua_State* L, const char* s, int i);
+/// @param data.
+void li_my_data(lua_State* L, my_data_t* data);
 
 /// Dumb calculator.
 /// @param L Lua environment.
