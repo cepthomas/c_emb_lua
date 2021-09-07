@@ -11,7 +11,8 @@
                 "${workspaceFolder}/lua-5.3.5"
             ],
             "defines": [
-                "abc"
+                "WIN32",
+                "_WIN32"
             ],
             "compilerPath": "${gccPath}/g++",
             "cStandard": "c99",

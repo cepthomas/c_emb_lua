@@ -11,6 +11,57 @@
 #include "luaconf.h"
 
 
+
+
+
+/**
+ * @warning Called from interrupt context!
+ *
+void vib_tick(uint16_t usec)
+{
+    s_tickFired = true;
+    s_lastTickDur_usec = usec;
+}
+
+
+void vib_forever(void)
+{
+    app_result_t newStatus = APP_ERR_OK;
+
+    while(p_running)
+    {
+        // Service high speed tasks.
+        //xtp_tick(0);
+
+        // Service millsecond-gated tasks.
+        if(s_tickFired)
+        {
+            perf_counterStart();
+            s_tickFired = false;
+
+            gpioManager_tick(s_lastTickDur_usec);
+            gpioManager_checkPolledIOs(s_lastTickDur_usec);
+            //...
+            stackLight_tick(s_lastTickDur_usec);
+
+            // Process module statuses.
+            if(canManager_currentStatus(CAN_CHANNEL_1) != CAN_OK)
+            {
+                newStatus = APP_ERR_CANMGR;
+            }
+            //....
+        }
+
+        // Service console.
+        serialPoll(CLI_PORT);
+        cliInterpreter(CLI_PORT);
+    }
+}
+*/
+
+
+
+
 //---------------- Private --------------------------//
 
 /// Note that Windows default clock is 64 times per second = 15.625 msec.
@@ -120,7 +171,6 @@ int exec_Run(const char* fn)
     // double d;
     // ctolua_Calc(p_lscript, 11, 22, &d);
     // printf(">>>%g\r\n", d);
-
 
     // Forever loop.
     while(p_loop_running && stat == RS_PASS)

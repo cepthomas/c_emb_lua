@@ -90,6 +90,16 @@ int board_RegDigInterrupt(board_DigInterrupt_t fp)
     return stat;
 }
 
+
+
+// #ifdef WIN32
+//     void _timeProc(int id, int msg, int user, int param1, int param2)
+//     {
+
+//     }
+// #endif
+
+
 //--------------------------------------------------------//
 int board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp)
 {
@@ -102,6 +112,10 @@ int board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp)
     {
         stat = RS_ERR;
     }
+
+    // const int MMTIMER_PERIOD = 1;
+    // // Create and start periodic timer. resolution is 0 or 1, mode is 1=TIME_PERIODIC
+    // int _timerID = timeSetEvent(MMTIMER_PERIOD, 0, _timeProc, NULL, 1);
 #endif
 
     return stat;
