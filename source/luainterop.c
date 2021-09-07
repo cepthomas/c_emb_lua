@@ -7,50 +7,136 @@
 #include "luainterop.h"
 
 
-// TODO add a string describing error.
-
-
-//---------------- Private --------------------------//
+//---------------- Private Declarations ---------------------//
 
 /// Dump the lua stack contents.
 /// @param L Lua state.
-int luainterop_DumpStack(lua_State *L);
+int p_DumpStack(lua_State *L);
 
 /// Report a bad thing detected by this component.
 /// @param L Lua state.
 /// @param format Standard string stuff.
-int luainterop_LuaError(lua_State* L, const char* format, ...);
+int p_LuaError(lua_State* L, const char* format, ...);
 
 /// Utility to get an int arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-int luainterop_GetArgInt(lua_State* L, int index, int* ret);
+int p_GetArgInt(lua_State* L, int index, int* ret);
 
 /// Utility to get a double arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-int luainterop_GetArgDbl(lua_State* L, int index, double* ret);
+int p_GetArgDbl(lua_State* L, int index, double* ret);
 
 /// Utility to get a boolean arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-int luainterop_GetArgBool(lua_State* L, int index, bool* ret);
+int p_GetArgBool(lua_State* L, int index, bool* ret);
 
 /// Utility to get a string arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
-int luainterop_GetArgStr(lua_State* L, int index, const char** ret);
+int p_GetArgStr(lua_State* L, int index, const char** ret);
 
 
 //---------------- Public Implementation -------------//
 
+//--------------------------------------------------------//
+void luainterop_context(lua_State* L, const char* s, int i)
+{
+    // Create a new empty table and pushes it onto the stack.
+    lua_newtable(L);
+
+    lua_pushstring(L, "script_string");
+    lua_pushstring(L, s);
+    lua_settable(L, -3);
+    
+    lua_pushstring(L, "script_int");
+    lua_pushinteger(L, i);
+    lua_settable(L, -3);
+
+    lua_setglobal(L, "script_context");
+}
 
 //--------------------------------------------------------//
-int luainterop_GetArgInt(lua_State* L, int index, int* ret)
+void luainterop_calc(lua_State* L, int x, int y, double* res)
+{
+    int lstat = 0;
+
+    ///// Get the function to be called.
+    printf("!!!!! %p\r\n", L);
+    lstat = lua_getglobal(L, "calc");
+    printf("!!!!! 2\r\n");
+    if(lstat >= LUA_ERRRUN)
+    {
+        printf("!!!!! 3\r\n");
+        p_LuaError(L, "lua_getglobal calc() failed");
+    }
+    printf("!!!!! 5\r\n");
+
+    ///// Push the arguments to the call.
+    lua_pushinteger(L, x);
+    printf("!!!!! 6\r\n");
+    lua_pushinteger(L, y);
+    printf("!!!!! 7\r\n");
+
+    ///// Use lua_pcall to do the actual call. TODO or int lua_pcallk (); This function behaves exactly like lua_pcall, but allows the called function to yield.
+    lstat = lua_pcall(L, 2, 1, 0);
+    printf("!!!!! 8\r\n");
+    if(lstat >= LUA_ERRRUN)
+    {
+        p_LuaError(L, "lua_pcall calc() failed");
+    }
+
+    ///// Pop the results from the stack.
+    if(lua_isnumber(L, -1))
+    {
+        *res = lua_tonumber(L, -1);
+    }
+    else
+    {
+        p_LuaError(L, "Bad calc() return value");
+    }
+
+    lua_pop(L, 1);  // pop returned value
+}
+
+//--------------------------------------------------------//
+void luainterop_hinput(lua_State* L, unsigned int pin, bool value)
+{
+    int lstat = 0;
+
+    ///// Get the function to be called.
+    lstat = lua_getglobal(L, "hinput");
+    if(lstat >= LUA_ERRRUN)
+    {
+        p_LuaError(L, "lua_getglobal hinput() failed");
+    }
+
+    ///// Push the arguments to the call.
+    lua_pushinteger(L, pin);
+    lua_pushboolean(L, value);
+
+    ///// Use lua_pcall to do the actual call.
+    lstat = lua_pcall(L, 2, 1, 0);
+    if(lstat >= LUA_ERRRUN)
+    {
+        p_LuaError(L, "Call hinput() failed");
+    }
+
+    /////
+    // no return value
+}
+
+
+//---------------- Private Implementation -------------//
+
+//--------------------------------------------------------//
+int p_GetArgInt(lua_State* L, int index, int* ret)
 {
     if(lua_isnumber(L, index) > 0)
     {
@@ -58,14 +144,14 @@ int luainterop_GetArgInt(lua_State* L, int index, int* ret)
     }
     else
     {
-        luainterop_LuaError(L, "Invalid integer argument at index %d", index);
+        p_LuaError(L, "Invalid integer argument at index %d", index);
     }
 
     return RS_PASS;
 }
 
 //--------------------------------------------------------//
-int luainterop_GetArgDbl(lua_State* L, int index, double* ret)
+int p_GetArgDbl(lua_State* L, int index, double* ret)
 {
     if(lua_isnumber(L, index) > 0)
     {
@@ -73,14 +159,14 @@ int luainterop_GetArgDbl(lua_State* L, int index, double* ret)
     }
     else
     {
-        luainterop_LuaError(L, "Invalid double argument at index %d", index);
+        p_LuaError(L, "Invalid double argument at index %d", index);
     }
 
     return RS_PASS;
 }
 
 //--------------------------------------------------------//
-int luainterop_GetArgBool(lua_State* L, int index, bool* ret)
+int p_GetArgBool(lua_State* L, int index, bool* ret)
 {
     if(lua_isboolean(L, index) > 0)
     {
@@ -88,14 +174,14 @@ int luainterop_GetArgBool(lua_State* L, int index, bool* ret)
     }
     else
     {
-        luainterop_LuaError(L, "Invalid bool argument at index %d", index);
+        p_LuaError(L, "Invalid bool argument at index %d", index);
     }
 
     return RS_PASS;
 }
 
 //--------------------------------------------------------//
-int luainterop_GetArgStr(lua_State* L, int index, const char** ret)
+int p_GetArgStr(lua_State* L, int index, const char** ret)
 {
     if(lua_isstring(L, index) > 0)
     {
@@ -103,14 +189,14 @@ int luainterop_GetArgStr(lua_State* L, int index, const char** ret)
     }
     else
     {
-        luainterop_LuaError(L, "Invalid string argument at index %d", index);
+        p_LuaError(L, "Invalid string argument at index %d", index);
     }
 
     return RS_PASS;
 }
 
 //--------------------------------------------------------//
-int luainterop_LuaError(lua_State* L, const char* format, ...)
+int p_LuaError(lua_State* L, const char* format, ...)
 {
     static char buff[CLI_BUFF_LEN];
 
@@ -129,7 +215,7 @@ int luainterop_LuaError(lua_State* L, const char* format, ...)
 }
 
 //--------------------------------------------------------//
-int luainterop_DumpStack(lua_State *L)
+int p_DumpStack(lua_State *L)
 {
     char buff[CLI_BUFF_LEN];
 
@@ -158,118 +244,13 @@ int luainterop_DumpStack(lua_State *L)
     return RS_PASS;
 }
 
-
-
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-#include "board.h"
-
-
-//--------------------------------------------------------//
-void ctolua_Context(lua_State* L, const char* s, int i)
-{
-    // Create a new empty table and pushes it onto the stack.
-    lua_newtable(L);
-
-    lua_pushstring(L, "script_string");
-    lua_pushstring(L, s);
-    lua_settable(L, -3);
-    
-    lua_pushstring(L, "script_int");
-    lua_pushinteger(L, i);
-    lua_settable(L, -3);
-
-    lua_setglobal(L, "script_context");
-}
-
-//--------------------------------------------------------//
-void ctolua_Calc(lua_State* L, int x, int y, double* res)
-{
-    int lstat = 0;
-
-    ///// Get the function to be called.
-    printf("!!!!! %p\r\n", L);
-    lstat = lua_getglobal(L, "calc");
-    printf("!!!!! 2\r\n");
-    if(lstat >= LUA_ERRRUN)
-    {
-        printf("!!!!! 3\r\n");
-        luainterop_LuaError(L, "lua_getglobal calc() failed");
-    }
-    printf("!!!!! 5\r\n");
-
-    ///// Push the arguments to the call.
-    lua_pushinteger(L, x);
-    printf("!!!!! 6\r\n");
-    lua_pushinteger(L, y);
-    printf("!!!!! 7\r\n");
-
-    ///// Use lua_pcall to do the actual call. TODO or int lua_pcallk (); This function behaves exactly like lua_pcall, but allows the called function to yield.
-    lstat = lua_pcall(L, 2, 1, 0);
-    printf("!!!!! 8\r\n");
-    if(lstat >= LUA_ERRRUN)
-    {
-        luainterop_LuaError(L, "lua_pcall calc() failed");
-    }
-
-    ///// Pop the results from the stack.
-    if(lua_isnumber(L, -1))
-    {
-        *res = lua_tonumber(L, -1);
-    }
-    else
-    {
-        luainterop_LuaError(L, "Bad calc() return value");
-    }
-
-    lua_pop(L, 1);  // pop returned value
-}
-
-//--------------------------------------------------------//
-void ctolua_HandleDigInput(lua_State* L, unsigned int pin, bool value)
-{
-    int lstat = 0;
-
-    ///// Get the function to be called.
-    lstat = lua_getglobal(L, "hinput");
-    if(lstat >= LUA_ERRRUN)
-    {
-        luainterop_LuaError(L, "lua_getglobal hinput() failed");
-    }
-
-    ///// Push the arguments to the call.
-    lua_pushinteger(L, pin);
-    lua_pushboolean(L, value);
-
-    ///// Use lua_pcall to do the actual call.
-    lstat = lua_pcall(L, 2, 1, 0);
-    if(lstat >= LUA_ERRRUN)
-    {
-        luainterop_LuaError(L, "Call hinput() failed");
-    }
-
-    /////
-    // no return value
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-
-
 //--------------------------------------------------------//
 
-int p_CliWrite(lua_State* L)
+int p_cliwr(lua_State* L)
 {
     ///// Get function arguments.
     const char* info = NULL;
-    luainterop_GetArgStr(L, 1, &info);
+    p_GetArgStr(L, 1, &info);
 
     ///// Do the work.
     board_CliWriteLine(info);
@@ -281,7 +262,7 @@ int p_CliWrite(lua_State* L)
 //--------------------------------------------------------//
 //  local start = luainterop.msec()
 
-int p_Msec(lua_State* L)
+int p_msec(lua_State* L)
 {
     ///// Get function arguments.
     // none
@@ -295,13 +276,13 @@ int p_Msec(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_DigOut(lua_State* L)
+int p_digout(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
     bool state;
-    luainterop_GetArgInt(L, 1, &pin);
-    luainterop_GetArgBool(L, 2, &state);
+    p_GetArgInt(L, 1, &pin);
+    p_GetArgBool(L, 2, &state);
 
     ///// Do the work.
     board_WriteDig((unsigned int)pin, state);
@@ -311,11 +292,11 @@ int p_DigOut(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_DigIn(lua_State* L)
+int p_digin(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
-    luainterop_GetArgInt(L, 1, &pin);
+    p_GetArgInt(L, 1, &pin);
 
     ///// Do the work.
     bool state;
@@ -332,10 +313,10 @@ int p_DigIn(lua_State* L)
 static const luaL_Reg luainteroplib[] =
 {
 //  { lua func, c func }
-    { "cliwr",  p_CliWrite },   // say something to user
-    { "msec",   p_Msec },       // get current time
-    { "digout", p_DigOut },     // write output pin
-    { "digin",  p_DigIn },      // read input pin
+    { "cliwr",  p_cliwr },      // say something to user
+    { "msec",   p_msec },       // get current time
+    { "digout", p_digout },     // write output pin
+    { "digin",  p_digin },      // read input pin
     { NULL, NULL }
 };
 
@@ -354,7 +335,7 @@ int p_OpenLuainterop (lua_State *L)
 //--------------------------------------------------------//
 /// Identify the system callback to load the lib.
 /// @param L Lua state.
-void luainterop_Preload(lua_State* L)
+void luainterop_preload(lua_State* L)
 {
     luaL_requiref(L, "luainterop", p_OpenLuainterop, 1);
 }

@@ -154,8 +154,8 @@ int p_StartScript(const char* fn)
 
     // Load libraries.
     luaL_openlibs(p_lmain);
-    luainterop_Preload(p_lmain);
-    ctolua_Context(p_lmain, "Hey diddle diddle", 90909);
+    luainterop_preload(p_lmain);
+    luainterop_context(p_lmain, "Hey diddle diddle", 90909);
 
     // Set up a second Lua thread so we can background execute the script.
     p_lscript = lua_newthread(p_lmain);
@@ -238,7 +238,7 @@ void p_TimerHandler(void)
 //---------------------------------------------------//
 void p_DigInputHandler(unsigned int which, bool value)
 {
-    ctolua_HandleDigInput(p_lscript, which, value);
+    luainterop_hinput(p_lscript, which, value);
 }
 
 //---------------------------------------------------//
@@ -281,7 +281,7 @@ int p_ProcessCommand(const char* sin)
                     double res = -1;
                     if(common_Strtoi(opts[1], &x) && common_Strtoi(opts[2], &y))
                     {
-                        ctolua_Calc(p_lscript, x, y, &res);
+                        luainterop_calc(p_lscript, x, y, &res);
                         board_CliWriteLine("%d + %d = %g", x, y, res);
                         valid = true;
                     }
