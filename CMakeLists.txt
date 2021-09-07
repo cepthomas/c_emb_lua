@@ -8,19 +8,17 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-deprecated-declarations")
 
 include_directories(
-    source
+    source/c
     lua-5.3.5
     )
 
 # Source files.
 add_executable(cemblua
-    source/main.c
-    source/common.c
-    source/exec.c
-    source/board.c
-    source/luainterop.c
-    # source/ctolua.c
-    # source/luatoc.c
+    source/c/main.c
+    source/c/common.c
+    source/c/exec.c
+    source/c/board.c
+    source/c/luainterop.c
     lua-5.3.5/lapi.c
     lua-5.3.5/lauxlib.c
     lua-5.3.5/lbaselib.c

@@ -14,6 +14,7 @@ It demonstrates:
 
 # Files TODO fix
 - [Conventions](https://github.com/cepthomas/c_bag_of_tricks/blob/master/CONVENTIONS.md).
+- TODO slight variation from std - luainterop name functions like their lua counterparts. and li_xxx
 - [Modular model](https://github.com/cepthomas/c_modular).
 - main.c - Entry stub calls exec.
 - exec.c/h - Does all the top-level work.

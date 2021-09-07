@@ -46,7 +46,7 @@ int p_GetArgStr(lua_State* L, int index, const char** ret);
 //---------------- Public Implementation -------------//
 
 //--------------------------------------------------------//
-void luainterop_context(lua_State* L, const char* s, int i)
+void li_context(lua_State* L, const char* s, int i)
 {
     // Create a new empty table and pushes it onto the stack.
     lua_newtable(L);
@@ -63,7 +63,7 @@ void luainterop_context(lua_State* L, const char* s, int i)
 }
 
 //--------------------------------------------------------//
-void luainterop_calc(lua_State* L, int x, int y, double* res)
+void li_calc(lua_State* L, int x, int y, double* res)
 {
     int lstat = 0;
 
@@ -106,7 +106,7 @@ void luainterop_calc(lua_State* L, int x, int y, double* res)
 }
 
 //--------------------------------------------------------//
-void luainterop_hinput(lua_State* L, unsigned int pin, bool value)
+void li_hinput(lua_State* L, unsigned int pin, bool value)
 {
     int lstat = 0;
 
@@ -335,7 +335,7 @@ int p_OpenLuainterop (lua_State *L)
 //--------------------------------------------------------//
 /// Identify the system callback to load the lib.
 /// @param L Lua state.
-void luainterop_preload(lua_State* L)
+void li_preload(lua_State* L)
 {
     luaL_requiref(L, "luainterop", p_OpenLuainterop, 1);
 }
