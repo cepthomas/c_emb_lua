@@ -5,10 +5,10 @@
 
 #include "common.h"
 #include "board.h"
-#include "luatoc.h"
-#include "ctolua.h"
+#include "luainterop.h"
 #include "exec.h"
 
+#include "luaconf.h"
 
 
 //---------------- Private --------------------------//
@@ -20,10 +20,10 @@ static const int SYS_TICK_MSEC = 10;
 static const int MAX_NUM_OPTS = 4;
 
 /// The main Lua thread.
-static lua_State* p_lstate_main;
+static lua_State* p_lmain;
 
 /// The Lua thread where the script is running.
-static lua_State* p_lstate_script;
+static lua_State* p_lscript;
 
 /// The script execution status.
 static bool p_script_running = false;
@@ -82,10 +82,10 @@ int exec_Init(void)
     p_loop_running = false;
     p_tick = 0;
     p_last_tick_time = 0;
-    p_lstate_main = luaL_newstate();
+    p_lmain = luaL_newstate();
 
     // Init components.
-    stat = common_Init();
+    stat = common_Init(); // TODO handle all errors.
     stat = board_Init();
 
     // Set up all board-specific stuff.
@@ -116,12 +116,18 @@ int exec_Run(const char* fn)
 
     p_StartScript(fn);
 
+    // A quick test. Do this after loading the file then running it.
+    // double d;
+    // ctolua_Calc(p_lscript, 11, 22, &d);
+    // printf(">>>%g\r\n", d);
+
+
     // Forever loop.
     while(p_loop_running && stat == RS_PASS)
     {
         stat = board_CliReadLine(p_cli_buf, CLI_BUFF_LEN);
 
-        if(strlen(p_cli_buf) > 0)
+        if(stat == RS_PASS && strlen(p_cli_buf) > 0)
         {
             stat = p_ProcessCommand(p_cli_buf);
         }
@@ -132,7 +138,7 @@ int exec_Run(const char* fn)
     board_EnableInterrupts(false);
 
     p_StopScript(); // just in case
-    lua_close(p_lstate_main);
+    lua_close(p_lmain);
 
     return stat == RS_EXIT ? 0 : stat;
 }
@@ -147,25 +153,21 @@ int p_StartScript(const char* fn)
     // Do the real work - run the Lua script.
 
     // Load libraries.
-    luaL_openlibs(p_lstate_main);
-    luatoc_Preload(p_lstate_main);
-    ctolua_Context(p_lstate_main, "Hey diddle diddle", 90909);
+    luaL_openlibs(p_lmain);
+    luainterop_Preload(p_lmain);
+    ctolua_Context(p_lmain, "Hey diddle diddle", 90909);
 
     // Set up a second Lua thread so we can background execute the script.
-    p_lstate_script = lua_newthread(p_lstate_main);
+    p_lscript = lua_newthread(p_lmain);
 
     // Load the script/file we are going to run.
-    lstat = luaL_loadfile(p_lstate_script, fn);
+    lstat = luaL_loadfile(p_lscript, fn);
 
     if(lstat == LUA_OK)
     {
         // Init the script. This also starts blocking execution.
-        lstat = lua_resume(p_lstate_script, 0, 0);
+        lstat = lua_resume(p_lscript, 0, 0);
         p_script_running = true;
-
-        // A quick test. Do this after loading the file then running it.
-        double d;
-        ctolua_Calc(p_lstate_script, 11, 22, &d);
 
         switch(lstat)
         {
@@ -207,16 +209,16 @@ void p_TimerHandler(void)
     p_last_tick_time = t;
 
     // Script stuff, coroutine handling.
-    if(p_script_running && p_lstate_script != NULL)
+    if(p_script_running && p_lscript != NULL)
     {
         // Find out where we are in the script sequence.
-        int lstat = lua_status(p_lstate_script);
+        int lstat = lua_status(p_lscript);
 
         switch(lstat)
         {
             case LUA_YIELD:
                 // Script is still running - continue.
-                lua_resume(p_lstate_script, 0, 0);
+                lua_resume(p_lscript, 0, 0);
                 break;
 
             case LUA_OK:
@@ -236,7 +238,7 @@ void p_TimerHandler(void)
 //---------------------------------------------------//
 void p_DigInputHandler(unsigned int which, bool value)
 {
-    ctolua_HandleDigInput(p_lstate_script, which, value);
+    ctolua_HandleDigInput(p_lscript, which, value);
 }
 
 //---------------------------------------------------//
@@ -279,7 +281,7 @@ int p_ProcessCommand(const char* sin)
                     double res = -1;
                     if(common_Strtoi(opts[1], &x) && common_Strtoi(opts[2], &y))
                     {
-                        ctolua_Calc(p_lstate_script, x, y, &res);
+                        ctolua_Calc(p_lscript, x, y, &res);
                         board_CliWriteLine("%d + %d = %g", x, y, res);
                         valid = true;
                     }
@@ -311,7 +313,7 @@ int p_ProcessCommand(const char* sin)
                         value = opts[2][0] == 't';
                         board_WriteDig((unsigned int)pin, value);
                         //board_CliWriteLine("write pin:%d = %d", pin, value);
-                        //ctolua_HandleDigInput(p_lstate_script, (unsigned int)pin, value);
+                        //ctolua_HandleDigInput(p_lscript, (unsigned int)pin, value);
                         valid = true;
                         
                     }
@@ -362,7 +364,7 @@ int p_ProcessExecError(int lstat)
     }
 
     // The error string from Lua.
-    board_CliWriteLine("%s: %s", buff, lua_tostring(p_lstate_script, -1));
+    board_CliWriteLine("%s: %s", buff, lua_tostring(p_lscript, -1));
 
     return status;
 }

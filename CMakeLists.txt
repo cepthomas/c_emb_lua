@@ -19,8 +19,8 @@ add_executable(cemblua
     source/exec.c
     source/board.c
     source/luainterop.c
-    source/ctolua.c
-    source/luatoc
+    # source/ctolua.c
+    # source/luatoc.c
     lua-5.3.5/lapi.c
     lua-5.3.5/lauxlib.c
     lua-5.3.5/lbaselib.c

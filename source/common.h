@@ -12,9 +12,34 @@
 #include <errno.h>
 #include <math.h>
 
+//---------------- Public Types ----------------------//
+
+typedef enum
+{
+    READY = 1,      ///> Ready to be scheduled
+    IN_PROCESS = 2, ///> Scheduled or running
+    DONE = 3        ///> All done
+} state_type_t;
+
+
+/// $desc%
+typedef struct
+{
+    double f1;      ///> A value
+    int f2;         ///> Another value
+    const char* f3; ///> Yet another
+} my_data_t;
+
+
+//---------------- Public Consts ----------------------//
 
 /// Defines an error (allocation, iniitialization, etc) for a function that returns a pointer.
 #define BAD_PTR NULL
+
+/// Validate pointer arg. If fails, early returns err.
+/// @param ptr Pointer.
+/// @param err Error value to return in case of failure.
+#define VAL_PTR(ptr, err) if(ptr == NULL) { return err; }
 
 /// Defines success for a function that returns int status.
 static const int RS_PASS = 0;
@@ -28,6 +53,8 @@ static const int RS_FAIL = -2;
 /// Defines normal exit status.
 static const int RS_EXIT = -3;
 
+
+//---------------- Public Functions ----------------------//
 
 /// Initialize the module.
 /// @return Status.

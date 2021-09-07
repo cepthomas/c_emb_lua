@@ -12,6 +12,39 @@
 
 //---------------- Private --------------------------//
 
+/// Dump the lua stack contents.
+/// @param L Lua state.
+int luainterop_DumpStack(lua_State *L);
+
+/// Report a bad thing detected by this component.
+/// @param L Lua state.
+/// @param format Standard string stuff.
+int luainterop_LuaError(lua_State* L, const char* format, ...);
+
+/// Utility to get an int arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+int luainterop_GetArgInt(lua_State* L, int index, int* ret);
+
+/// Utility to get a double arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+int luainterop_GetArgDbl(lua_State* L, int index, double* ret);
+
+/// Utility to get a boolean arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+int luainterop_GetArgBool(lua_State* L, int index, bool* ret);
+
+/// Utility to get a string arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+int luainterop_GetArgStr(lua_State* L, int index, const char** ret);
+
 
 //---------------- Public Implementation -------------//
 
@@ -123,4 +156,205 @@ int luainterop_DumpStack(lua_State *L)
     }
 
     return RS_PASS;
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+#include "board.h"
+
+
+//--------------------------------------------------------//
+void ctolua_Context(lua_State* L, const char* s, int i)
+{
+    // Create a new empty table and pushes it onto the stack.
+    lua_newtable(L);
+
+    lua_pushstring(L, "script_string");
+    lua_pushstring(L, s);
+    lua_settable(L, -3);
+    
+    lua_pushstring(L, "script_int");
+    lua_pushinteger(L, i);
+    lua_settable(L, -3);
+
+    lua_setglobal(L, "script_context");
+}
+
+//--------------------------------------------------------//
+void ctolua_Calc(lua_State* L, int x, int y, double* res)
+{
+    int lstat = 0;
+
+    ///// Get the function to be called.
+    printf("!!!!! %p\r\n", L);
+    lstat = lua_getglobal(L, "calc");
+    printf("!!!!! 2\r\n");
+    if(lstat >= LUA_ERRRUN)
+    {
+        printf("!!!!! 3\r\n");
+        luainterop_LuaError(L, "lua_getglobal calc() failed");
+    }
+    printf("!!!!! 5\r\n");
+
+    ///// Push the arguments to the call.
+    lua_pushinteger(L, x);
+    printf("!!!!! 6\r\n");
+    lua_pushinteger(L, y);
+    printf("!!!!! 7\r\n");
+
+    ///// Use lua_pcall to do the actual call. TODO or int lua_pcallk (); This function behaves exactly like lua_pcall, but allows the called function to yield.
+    lstat = lua_pcall(L, 2, 1, 0);
+    printf("!!!!! 8\r\n");
+    if(lstat >= LUA_ERRRUN)
+    {
+        luainterop_LuaError(L, "lua_pcall calc() failed");
+    }
+
+    ///// Pop the results from the stack.
+    if(lua_isnumber(L, -1))
+    {
+        *res = lua_tonumber(L, -1);
+    }
+    else
+    {
+        luainterop_LuaError(L, "Bad calc() return value");
+    }
+
+    lua_pop(L, 1);  // pop returned value
+}
+
+//--------------------------------------------------------//
+void ctolua_HandleDigInput(lua_State* L, unsigned int pin, bool value)
+{
+    int lstat = 0;
+
+    ///// Get the function to be called.
+    lstat = lua_getglobal(L, "hinput");
+    if(lstat >= LUA_ERRRUN)
+    {
+        luainterop_LuaError(L, "lua_getglobal hinput() failed");
+    }
+
+    ///// Push the arguments to the call.
+    lua_pushinteger(L, pin);
+    lua_pushboolean(L, value);
+
+    ///// Use lua_pcall to do the actual call.
+    lstat = lua_pcall(L, 2, 1, 0);
+    if(lstat >= LUA_ERRRUN)
+    {
+        luainterop_LuaError(L, "Call hinput() failed");
+    }
+
+    /////
+    // no return value
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+
+
+//--------------------------------------------------------//
+
+int p_CliWrite(lua_State* L)
+{
+    ///// Get function arguments.
+    const char* info = NULL;
+    luainterop_GetArgStr(L, 1, &info);
+
+    ///// Do the work.
+    board_CliWriteLine(info);
+
+    ///// Push return values.
+    return 0; // number of results
+}
+
+//--------------------------------------------------------//
+//  local start = luainterop.msec()
+
+int p_Msec(lua_State* L)
+{
+    ///// Get function arguments.
+    // none
+
+    ///// Do the work.
+    unsigned int msec = common_GetMsec();
+
+    ///// Push return values.
+    lua_pushinteger(L, msec);
+    return 1; // number of results
+}
+
+//--------------------------------------------------------//
+int p_DigOut(lua_State* L)
+{
+    ///// Get function arguments.
+    int pin;
+    bool state;
+    luainterop_GetArgInt(L, 1, &pin);
+    luainterop_GetArgBool(L, 2, &state);
+
+    ///// Do the work.
+    board_WriteDig((unsigned int)pin, state);
+
+    ///// Push return values.
+    return 0; // number of results
+}
+
+//--------------------------------------------------------//
+int p_DigIn(lua_State* L)
+{
+    ///// Get function arguments.
+    int pin;
+    luainterop_GetArgInt(L, 1, &pin);
+
+    ///// Do the work.
+    bool state;
+    board_ReadDig((unsigned int)pin, &state);
+
+    ///// Push return values.
+    lua_pushboolean(L, state);
+    return 1; // number of results
+}
+
+
+//--------------------------------------------------------//
+/// Map functions in the module.
+static const luaL_Reg luainteroplib[] =
+{
+//  { lua func, c func }
+    { "cliwr",  p_CliWrite },   // say something to user
+    { "msec",   p_Msec },       // get current time
+    { "digout", p_DigOut },     // write output pin
+    { "digin",  p_DigIn },      // read input pin
+    { NULL, NULL }
+};
+
+//--------------------------------------------------------//
+/// Called by system to actually load the lib.
+/// @param L Lua state.
+/// @return Status = 1 if ok.
+int p_OpenLuainterop (lua_State *L)
+{
+    // Register our C <-> Lua functions.
+    luaL_newlib(L, luainteroplib);
+
+    return 1;
+}
+
+//--------------------------------------------------------//
+/// Identify the system callback to load the lib.
+/// @param L Lua state.
+void luainterop_Preload(lua_State* L)
+{
+    luaL_requiref(L, "luainterop", p_OpenLuainterop, 1);
 }

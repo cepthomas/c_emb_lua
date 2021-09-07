@@ -4,22 +4,30 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 
     "version": "0.2.0",
-    "configurations": [
-        // {
-        //     "name": "debug test",
-        //     "type": "gdb",
-        //     "request": "launch", //"attach"
-        //     "valuesFormatting": "parseText",
-        //     "preLaunchTask": "build-all",
-        //     // Set debug target as appropriate.
-        //     "cwd": "${workspaceFolder}/build",
-        //     "target": "${workspaceFolder}/build/cemblua.exe",
-        //     "arguments": "demoapp.lua"
-        // },
+    "configurations":
+    [
+        {
+            "name": "debug test",
+            "type": "gdb",
+            "request": "launch", //"attach"
+            "valuesFormatting": "parseText",
+            "preLaunchTask": "build-all",
+            // Set debug target as appropriate.
+            "cwd": "${workspaceFolder}/build",
+            "target": "${workspaceFolder}/build/cemblua.exe",
+            "arguments": "demoapp.lua"
+        },
         // {
         //     "name": "run proc",
         //     "type": "lua",
+        //     "request": "launch",
         //     "program": "${workspaceFolder}/proc_idl.lua",
+        //     "runtimeArgs": "xyz"
+        // }
+        // {
+        //     "name": "run proc",
+        //     "type": "lua",
+        //     //"program": "${workspaceFolder}/proc_idl.lua",
         //     "request": "launch",
         //     "luaexe": "C:/lua/5.3",
         //     "runtimeArgs": "xyz",

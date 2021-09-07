@@ -2,7 +2,7 @@
 # type:
 # I: integer
 # S: string
-# N: number/double
+# D: double
 # B: boolean
 # T: struct
 # mod:
@@ -17,7 +17,7 @@
 # TODO? describe lang in/out
 
 
-########### meta ###############
+########### enums ###############
 
 # TODO num is optional
 enum=state_type, desc="Program statuses"
@@ -30,25 +30,48 @@ enum=state_type, desc="Program statuses"
 
 # TODO nested structs, default values
 struct=my_data, desc="blabla"
-    field=f1, type=N, desc="field 1"
+    field=f1, type=D, desc="field 1"
     field=f2, type=I, desc="field 2"
+    field=f3, type=S, desc="field 3"
 
 
-########### functions ###############
+########### functions - ctolua ###############
 
-# ctolua call lua functions from C
-func=calc, type=ctolua, desc="Dumb calculator"
-    arg=Op1, type=N, desc="op 1"
-    arg=Op2, type=N, desc="op 2"
+### ctolua call lua functions from C
+func_c2l=calc, desc="Dumb calculator - only adds"
+    arg=op1, type=D, desc="op 1"
+    arg=op2, type=D, desc="op 2"
     # handler="calc_worker"
-    ret=Res1, type=N, desc="one result"
-    # ret=Res2, type=N, desc="another result"
+    ret=res1, type=D, desc="the sum"
+    # ret=res2, type=D, desc="another result"
+
+# void ctolua_HandleDigInput(lua_State* L, unsigned int pin, bool value)
+func_c2l=hinput, desc="C got an input and lua script needs to do something with it"
+    arg=pin, type=D, desc="pin number"
+    arg=value, type=B, desc="pin value"
+
+# void ctolua_Context(lua_State* L, const char* s, int i) TODO or use struct
 
 
-# luatoc call C functions from lua
-func=DigIn, type=luatoc, desc="Get dig input"
+########### functions - luatoc ###############
+
+### luatoc call C functions from lua
+
+# p_CliWrite
+func_l2c=cliwr, desc="Tell the user something"
+    arg=text, type=S, desc="what to say"
+
+# p_Msec
+func_l2c=msec, desc="get msec since start"
+    ret=state, type=I, desc="num msec"
+
+# p_DigOut
+func_l2c=digout, desc="Get dig input"
     arg=pin, type=I, desc="pin number"
-    # arg=vvv, type=B, desc="bla"
-#>>    handler="board_ReadDig"
+    arg=state, type=B, desc="what it be"
+
+# p_DigIn
+func_l2c=digin, desc="Get dig input"
+    arg=pin, type=I, desc="pin number"
     ret=state, type=B, desc="what it be"
-    # ret=Res2, type=N, desc="another result"
+
