@@ -13,6 +13,6 @@ make
 cd ..
 
 rem TODO This really should be done by CMake but it's kind of a pain.
-copy source\*.lua build
+copy source\lua\*.lua build
 
 rem pause

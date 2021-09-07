@@ -2,7 +2,7 @@
 Lua utilities.
 --]]
 
-local luainterop = require "luainterop"
+local li = require "luainterop"
 
 -- Create the namespace/module.
 local M = {}
@@ -16,13 +16,13 @@ function M.delay_timer(msec)
   local timeout = msec
 
   -- Grab the start time.
-  local start = luainterop.msec()
+  local start = li.msec()
   
   -- The accessor function.
   local status =
     function()
       -- Are we there yet?
-      return (luainterop.msec() - start) > timeout
+      return (li.msec() - start) > timeout
     end  
       
   return { status = status }
@@ -31,11 +31,8 @@ end
 -- Blocking wait.
 -- @param time Sleep time in msec.
 function M.sleep(time)
-  luainterop.cliwr("sleep() 10")
   local timer = M.delay_timer(time)
-  luainterop.cliwr("sleep() 20")
-  while not timer.status() do coroutine.yield() end
-  luainterop.cliwr("sleep() 30")
+  while not timer.status() do coroutine.yield() end --TODOX
 end
 
 -- Concat the contents of the parameter list, separated by the string delimiter.

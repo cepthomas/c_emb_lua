@@ -166,12 +166,12 @@ int p_StartScript(const char* fn)
     if(lstat == LUA_OK)
     {
         // Init the script. This also starts blocking execution.
-        lstat = lua_resume(p_lscript, 0, 0);
+        lstat = lua_resume(p_lscript, 0, 0);//TODOX
         p_script_running = true;
 
         switch(lstat)
         {
-            case LUA_YIELD:
+            case LUA_YIELD://TODOX
                 // If script is long running, it will yield and get resumed in the timer callback.
                 // common_log(LOG_INFO, "LUA_YIELD.");
                 lstat = LUA_OK;
@@ -200,7 +200,7 @@ int p_StartScript(const char* fn)
 //---------------------------------------------------//
 void p_TimerHandler(void)
 {
-    // Do the periodic real work of the application.
+    // Do the periodic real work of the application. //TODOX on a different thread!
     p_tick++;
 
     // Crude responsiveness measurement. Win timer is sloppy.
@@ -216,7 +216,7 @@ void p_TimerHandler(void)
 
         switch(lstat)
         {
-            case LUA_YIELD:
+            case LUA_YIELD://TODOX
                 // Script is still running - continue.
                 lua_resume(p_lscript, 0, 0);
                 break;

@@ -12,20 +12,20 @@ It demonstrates:
 - Run build.cmd to make the executables.
 - It supports only windows (search WIN32) right now but should be easy to convert to linux or bare metal.
 
-# Files TODO fix
-- [Conventions](https://github.com/cepthomas/c_bag_of_tricks/blob/master/CONVENTIONS.md).
-- TODO slight variation from std - luainterop name functions like their lua counterparts. and li_xxx
+# Files
+- [Conventions](https://github.com/cepthomas/c_bag_of_tricks/blob/master/CONVENTIONS.md). Slight variations to keep C and lua names consistent.
 - [Modular model](https://github.com/cepthomas/c_modular).
-- main.c - Entry stub calls exec.
-- exec.c/h - Does all the top-level work.
-- board.c/h - Interface to the (simulated) hardware.
-- common.c/h - Misc time, strings, ...
-- ctolua.c/h - Interface to call lua functions from C.
-- luatoc.c/h - Interface to call C functions from lua.
-- luainterop.c/h - Generic stuff for talking with lua. This could be in a lib.
-- demoapp.lua - Lua script for a simplistic multithreaded coroutine application. Uses luatoc.
-- utils.lua - Used by demoapp.lua.
-- lua-5.3.5/* - lua source code for this application.
+- `c` folder:
+    - main.c - Entry stub calls exec.
+    - exec.c/h - Does all the top-level work.
+    - board.c/h - Interface to the (simulated) hardware.
+    - common.c/h - Misc time, strings, ...
+    - luainterop.c/h - Interfaces to call lua functions from C and to call C functions from lua.
+- `lua` folder:
+    - demoapp.lua - Lua script for a simplistic multithreaded coroutine application. Uses luatoc.
+    - utils.lua - Used by demoapp.lua.
+- `lua-5.3.5` folder:
+    - lua source code for this application.
 
 # Licenses
 [This repo](https://github.com/cepthomas/c-emb-lua/blob/master/LICENSE)
