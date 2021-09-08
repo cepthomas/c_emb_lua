@@ -52,11 +52,6 @@ static int p_ProcessCommand(const char* sin);
 /// @return status
 static int p_StopScript(void);
 
-/// @brief Common handler for lua runtime execution errors.
-/// @param lua_stat The lua status value.
-/// @return status
-static int p_ProcessLuaError(int lua_stat);
-
 /// @brief Print usage.
 static void p_Usage(void);
 
@@ -165,7 +160,7 @@ int exec_Run(const char* fn)
 
                 default:
                     // Unexpected error.
-                    p_ProcessLuaError(lua_stat);
+                    li_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
                     break;
             }
 
@@ -195,7 +190,7 @@ int exec_Run(const char* fn)
     }
     else
     {
-        p_ProcessLuaError(lua_stat);
+        li_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
     }
 
     // Done, close up shop.

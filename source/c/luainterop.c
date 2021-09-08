@@ -9,17 +9,6 @@
 
 //---------------- Private Declarations ---------------------//
 
-/// Dump the lua stack contents.
-/// @param L Lua state.
-int p_DumpStack(lua_State *L);
-
-/// Report a bad thing detected by this component.
-/// @param L Lua state.
-/// @param err Specific Lua error.
-/// @param line Where
-/// @param format Standard string stuff.
-void p_LuaError(lua_State* L, int err, int line, const char* format, ...);
-
 /// Utility to get an int arg off the Lua stack.
 /// @param L Lua state.
 /// @param index Index of the entry on the Lua stack.
@@ -87,7 +76,7 @@ void li_calc(lua_State* L, int x, int y, double* res)
     if(lstat >= LUA_ERRRUN)
     {
         printf("!!!!! 3\n");
-        p_LuaError(L, lstat, __LINE__, "lua_getglobal calc() failed");
+        li_LuaError(L, lstat, __LINE__, "lua_getglobal calc() failed");
     }
     printf("!!!!! 4\n");
 
@@ -103,7 +92,7 @@ void li_calc(lua_State* L, int x, int y, double* res)
     if(lstat >= LUA_ERRRUN)
     {
         printf("!!!!! 8\n");
-        p_LuaError(L, lstat, __LINE__, "lua_pcall calc() failed");
+        li_LuaError(L, lstat, __LINE__, "lua_pcall calc() failed");
     }
         printf("!!!!! 9\n");
 
@@ -116,7 +105,7 @@ void li_calc(lua_State* L, int x, int y, double* res)
     else
     {
         printf("!!!!! 11\n");
-        p_LuaError(L, lstat, __LINE__, "Bad calc() return value");
+        li_LuaError(L, lstat, __LINE__, "Bad calc() return value");
         printf("!!!!! 12\n");
     }
 
@@ -132,7 +121,7 @@ void li_hinput(lua_State* L, unsigned int pin, bool value)
     lstat = lua_getglobal(L, "hinput");
     if(lstat >= LUA_ERRRUN)
     {
-        p_LuaError(L, lstat, __LINE__, "lua_getglobal hinput() failed");
+        li_LuaError(L, lstat, __LINE__, "lua_getglobal hinput() failed");
     }
 
     ///// Push the arguments to the call.
@@ -143,7 +132,7 @@ void li_hinput(lua_State* L, unsigned int pin, bool value)
     lstat = lua_pcall(L, 2, 1, 0);
     if(lstat >= LUA_ERRRUN)
     {
-        p_LuaError(L, lstat, __LINE__, "Call hinput() failed");
+        li_LuaError(L, lstat, __LINE__, "Call hinput() failed");
     }
 
     /////
@@ -151,70 +140,8 @@ void li_hinput(lua_State* L, unsigned int pin, bool value)
 }
 
 
-//---------------- Private Implementation -------------//
-
 //--------------------------------------------------------//
-int p_GetArgInt(lua_State* L, int index, int* ret)
-{
-    if(lua_isnumber(L, index) > 0)
-    {
-        *ret = (int)lua_tointeger(L, index);
-    }
-    else
-    {
-        p_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid integer argument at index %d", index);
-    }
-
-    return RS_PASS;
-}
-
-//--------------------------------------------------------//
-int p_GetArgDbl(lua_State* L, int index, double* ret)
-{
-    if(lua_isnumber(L, index) > 0)
-    {
-        *ret = lua_tonumber(L, index);
-    }
-    else
-    {
-        p_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid double argument at index %d", index);
-    }
-
-    return RS_PASS;
-}
-
-//--------------------------------------------------------//
-int p_GetArgBool(lua_State* L, int index, bool* ret)
-{
-    if(lua_isboolean(L, index) > 0)
-    {
-        *ret = lua_toboolean(L, index); // always t/f
-    }
-    else
-    {
-        p_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid bool argument at index %d", index);
-    }
-
-    return RS_PASS;
-}
-
-//--------------------------------------------------------//
-int p_GetArgStr(lua_State* L, int index, const char** ret)
-{
-    if(lua_isstring(L, index) > 0)
-    {
-        *ret = lua_tostring(L, index); //returns NULL if ng
-    }
-    else
-    {
-        p_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid string argument at index %d", index);
-    }
-
-    return RS_PASS;
-}
-
-//--------------------------------------------------------//
-void p_LuaError(lua_State* L, int err, int line, const char* format, ...)
+void li_LuaError(lua_State* L, int err, int line, const char* format, ...)
 {
     static char buff[CLI_BUFF_LEN];
 
@@ -258,7 +185,7 @@ void p_LuaError(lua_State* L, int err, int line, const char* format, ...)
 }
 
 //--------------------------------------------------------//
-int p_DumpStack(lua_State *L)
+int li_DumpStack(lua_State *L)
 {
     char buff[CLI_BUFF_LEN];
 
@@ -282,6 +209,68 @@ int p_DumpStack(lua_State *L)
         }
 
         board_CliWriteLine(buff);
+    }
+
+    return RS_PASS;
+}
+
+//---------------- Private Implementation -------------//
+
+//--------------------------------------------------------//
+int p_GetArgInt(lua_State* L, int index, int* ret)
+{
+    if(lua_isnumber(L, index) > 0)
+    {
+        *ret = (int)lua_tointeger(L, index);
+    }
+    else
+    {
+        li_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid integer argument at index %d", index);
+    }
+
+    return RS_PASS;
+}
+
+//--------------------------------------------------------//
+int p_GetArgDbl(lua_State* L, int index, double* ret)
+{
+    if(lua_isnumber(L, index) > 0)
+    {
+        *ret = lua_tonumber(L, index);
+    }
+    else
+    {
+        li_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid double argument at index %d", index);
+    }
+
+    return RS_PASS;
+}
+
+//--------------------------------------------------------//
+int p_GetArgBool(lua_State* L, int index, bool* ret)
+{
+    if(lua_isboolean(L, index) > 0)
+    {
+        *ret = lua_toboolean(L, index); // always t/f
+    }
+    else
+    {
+        li_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid bool argument at index %d", index);
+    }
+
+    return RS_PASS;
+}
+
+//--------------------------------------------------------//
+int p_GetArgStr(lua_State* L, int index, const char** ret)
+{
+    if(lua_isstring(L, index) > 0)
+    {
+        *ret = lua_tostring(L, index); //returns NULL if ng
+    }
+    else
+    {
+        li_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid string argument at index %d", index);
     }
 
     return RS_PASS;
