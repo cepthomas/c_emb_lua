@@ -13,27 +13,14 @@
 /// Registered client callback for IO pin changes.
 static board_DigInterrupt_t p_dig_interrupt = NULL;
 
-/// Registered client callback for periodic timer ticks.
-static board_TimerInterrupt_t p_timer_interrupt = NULL;
-
 /// Interrupts enabled?
 static bool p_enb_interrupts = false;
 
 /// CLI buffer to collect input chars. This simulator uses stdio, a real system would probably use a serial port.
 static char p_cli_buff[CLI_BUFF_LEN];
 
-
-//---------------- Simulator Stuff -----------------------//
-
 /// Simulated digital IO pins.
 static bool p_dig_pins_sim[NUM_DIG_PINS];
-
-/// Windows periodic timer.
-#ifdef WIN32
-#include <windows.h>
-static HANDLE p_win_handle;
-static VOID CALLBACK p_WinTimerHandler(PVOID lpParameter, BOOLEAN TimerOrWaitFired) { p_timer_interrupt(); }
-#endif
 
 
 //---------------- Public Implementation -----------------//
@@ -47,7 +34,6 @@ int board_Init(void)
 
     p_enb_interrupts = false;
     p_dig_interrupt = NULL;
-    p_timer_interrupt = NULL;
 
     for(int i = 0; i < NUM_DIG_PINS; i++)
     {
@@ -61,12 +47,7 @@ int board_Init(void)
 int board_Destroy(void)
 {
     int stat = RS_PASS;
-
-#ifdef WIN32
-    DeleteTimerQueueTimer(NULL, p_win_handle, NULL);
-    CloseHandle(p_win_handle);
-#endif
-
+    p_enb_interrupts = false;
     return stat;
 }
 
@@ -74,9 +55,7 @@ int board_Destroy(void)
 int board_EnableInterrupts(bool enb)
 {
     int stat = RS_PASS;
-
     p_enb_interrupts = enb;
-
     return stat;
 }
 
@@ -84,45 +63,12 @@ int board_EnableInterrupts(bool enb)
 int board_RegDigInterrupt(board_DigInterrupt_t fp)
 {
     int stat = RS_PASS;
-
     p_dig_interrupt = fp;
-
-    return stat;
-}
-
-
-
-// #ifdef WIN32
-//     void _timeProc(int id, int msg, int user, int param1, int param2)
-//     {
-
-//     }
-// #endif
-
-
-//--------------------------------------------------------//
-int board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp)
-{
-    int stat = RS_PASS;
-
-    p_timer_interrupt = fp;
-
-#ifdef WIN32
-    if(CreateTimerQueueTimer(&p_win_handle, NULL, (WAITORTIMERCALLBACK)p_WinTimerHandler, NULL, msec, msec, WT_EXECUTEINTIMERTHREAD) == 0)
-    {
-        stat = RS_ERR;
-    }
-
-    // const int MMTIMER_PERIOD = 1;
-    // // Create and start periodic timer. resolution is 0 or 1, mode is 1=TIME_PERIODIC
-    // int _timerID = timeSetEvent(MMTIMER_PERIOD, 0, _timeProc, NULL, 1);
-#endif
-
     return stat;
 }
 
 //--------------------------------------------------------//
-uint64_t board_GetCurrentUsec(void)
+uint64_t board_GetCurrentUsec(void) //TODO test this
 {
     struct timeval tv;
     struct timezone tz;
@@ -181,15 +127,14 @@ int board_CliOpen(unsigned int channel)
 //--------------------------------------------------------//
 int board_CliReadLine(char* buff, unsigned int num)
 {
-    int stat = RS_PASS;
+    int stat = RS_FAIL;
 
     // Default.
     buff[0] = 0;
 
-    char c = (char)_getch();
-
-    if(c != 0)
+    if (_kbhit())
     {
+        char c = (char)_getch();
         switch(c)
         {
             case '\n':
@@ -199,9 +144,10 @@ int board_CliReadLine(char* buff, unsigned int num)
             case '\r':
                 // Echo return.
                 board_CliWriteLine("");
-                // Copy to client buff.
+                // Copy to client buff. Should be 0 terminated.
                 strncpy(buff, p_cli_buff, num);
-                // Clear.
+                stat = RS_PASS;
+                // Clear buffer.
                 memset(p_cli_buff, 0, CLI_BUFF_LEN);
                 // Echo prompt.
                 board_CliWriteLine("");
@@ -230,7 +176,7 @@ int board_CliWriteLine(const char* format, ...)
     va_start(args, format);
     vsnprintf(buff, CLI_BUFF_LEN-1, format, args);
 
-    // Add a prompt.
+    // Add a prompt. TODO fix
     printf("%s\r\n>", buff);
 
     return stat;    

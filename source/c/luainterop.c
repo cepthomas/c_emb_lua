@@ -15,8 +15,10 @@ int p_DumpStack(lua_State *L);
 
 /// Report a bad thing detected by this component.
 /// @param L Lua state.
+/// @param err Specific Lua error.
+/// @param line Where
 /// @param format Standard string stuff.
-int p_LuaError(lua_State* L, const char* format, ...);
+void p_LuaError(lua_State* L, int err, int line, const char* format, ...);
 
 /// Utility to get an int arg off the Lua stack.
 /// @param L Lua state.
@@ -41,6 +43,9 @@ int p_GetArgBool(lua_State* L, int index, bool* ret);
 /// @param index Index of the entry on the Lua stack.
 /// @param[out] ret The value.
 int p_GetArgStr(lua_State* L, int index, const char** ret);
+
+
+#define IOP_INVALID_TYPE 100
 
 
 //---------------- Public Implementation -------------//
@@ -71,60 +76,48 @@ void li_my_data(lua_State* L, my_data_t* data)
 }
 
 //--------------------------------------------------------//
-// void li_context(lua_State* L, const char* s, int i)
-// {
-//     // Create a new empty table and pushes it onto the stack.
-//     lua_newtable(L);
-
-//     lua_pushstring(L, "script_string");
-//     lua_pushstring(L, s);
-//     lua_settable(L, -3);
-    
-//     lua_pushstring(L, "script_int");
-//     lua_pushinteger(L, i);
-//     lua_settable(L, -3);
-
-//     lua_setglobal(L, "script_context");
-// }
-
-//--------------------------------------------------------//
 void li_calc(lua_State* L, int x, int y, double* res)
 {
     int lstat = 0;
 
     ///// Get the function to be called.
-    printf("!!!!! %p\r\n", L);
+    printf("!!!!! %p\n", L);
     lstat = lua_getglobal(L, "calc");
-    printf("!!!!! 2\r\n");
+    printf("!!!!! 2\n");
     if(lstat >= LUA_ERRRUN)
     {
-        printf("!!!!! 3\r\n");
-        p_LuaError(L, "lua_getglobal calc() failed");
+        printf("!!!!! 3\n");
+        p_LuaError(L, lstat, __LINE__, "lua_getglobal calc() failed");
     }
-    printf("!!!!! 5\r\n");
+    printf("!!!!! 4\n");
 
     ///// Push the arguments to the call.
     lua_pushinteger(L, x);
-    printf("!!!!! 6\r\n");
+    printf("!!!!! 5\n");
     lua_pushinteger(L, y);
-    printf("!!!!! 7\r\n");
+    printf("!!!!! 6\n");
 
     ///// Use lua_pcall to do the actual call. TODO or int lua_pcallk (); This function behaves exactly like lua_pcall, but allows the called function to yield.
     lstat = lua_pcall(L, 2, 1, 0);
-    printf("!!!!! 8\r\n");
+    printf("!!!!! 7\n");
     if(lstat >= LUA_ERRRUN)
     {
-        p_LuaError(L, "lua_pcall calc() failed");
+        printf("!!!!! 8\n");
+        p_LuaError(L, lstat, __LINE__, "lua_pcall calc() failed");
     }
+        printf("!!!!! 9\n");
 
     ///// Pop the results from the stack.
     if(lua_isnumber(L, -1))
     {
         *res = lua_tonumber(L, -1);
+        printf("!!!!! 10\n");
     }
     else
     {
-        p_LuaError(L, "Bad calc() return value");
+        printf("!!!!! 11\n");
+        p_LuaError(L, lstat, __LINE__, "Bad calc() return value");
+        printf("!!!!! 12\n");
     }
 
     lua_pop(L, 1);  // pop returned value
@@ -139,7 +132,7 @@ void li_hinput(lua_State* L, unsigned int pin, bool value)
     lstat = lua_getglobal(L, "hinput");
     if(lstat >= LUA_ERRRUN)
     {
-        p_LuaError(L, "lua_getglobal hinput() failed");
+        p_LuaError(L, lstat, __LINE__, "lua_getglobal hinput() failed");
     }
 
     ///// Push the arguments to the call.
@@ -150,7 +143,7 @@ void li_hinput(lua_State* L, unsigned int pin, bool value)
     lstat = lua_pcall(L, 2, 1, 0);
     if(lstat >= LUA_ERRRUN)
     {
-        p_LuaError(L, "Call hinput() failed");
+        p_LuaError(L, lstat, __LINE__, "Call hinput() failed");
     }
 
     /////
@@ -169,7 +162,7 @@ int p_GetArgInt(lua_State* L, int index, int* ret)
     }
     else
     {
-        p_LuaError(L, "Invalid integer argument at index %d", index);
+        p_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid integer argument at index %d", index);
     }
 
     return RS_PASS;
@@ -184,7 +177,7 @@ int p_GetArgDbl(lua_State* L, int index, double* ret)
     }
     else
     {
-        p_LuaError(L, "Invalid double argument at index %d", index);
+        p_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid double argument at index %d", index);
     }
 
     return RS_PASS;
@@ -195,11 +188,11 @@ int p_GetArgBool(lua_State* L, int index, bool* ret)
 {
     if(lua_isboolean(L, index) > 0)
     {
-        *ret = lua_toboolean(L, index);
+        *ret = lua_toboolean(L, index); // always t/f
     }
     else
     {
-        p_LuaError(L, "Invalid bool argument at index %d", index);
+        p_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid bool argument at index %d", index);
     }
 
     return RS_PASS;
@@ -210,33 +203,58 @@ int p_GetArgStr(lua_State* L, int index, const char** ret)
 {
     if(lua_isstring(L, index) > 0)
     {
-        *ret = lua_tostring(L, index);
+        *ret = lua_tostring(L, index); //returns NULL if ng
     }
     else
     {
-        p_LuaError(L, "Invalid string argument at index %d", index);
+        p_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid string argument at index %d", index);
     }
 
     return RS_PASS;
 }
 
 //--------------------------------------------------------//
-int p_LuaError(lua_State* L, const char* format, ...)
+void p_LuaError(lua_State* L, int err, int line, const char* format, ...)
 {
     static char buff[CLI_BUFF_LEN];
 
     va_list args;
     va_start(args, format);
     vsnprintf(buff, CLI_BUFF_LEN-1, format, args);
+    printf("%s\n", buff);
+
+    switch( err )
+    {
+        case LUA_ERRFILE:
+            printf("LUA_ERRFILE: couldn't open the given file (%d)\n", line);
+            break;
+        case LUA_ERRSYNTAX:
+            printf("LUA_ERRSYNTAX: syntax error during pre-compilation (%d)\n", line);
+            break;
+        case LUA_ERRMEM:
+            printf("LUA_ERRMEM: memory allocation error (%d)\n", line);
+            break;
+        case LUA_ERRRUN:
+            printf("LUA_ERRRUN (%d)\n", line);
+            break;
+        case LUA_ERRERR:
+            printf("LUA_ERRERR: error while running the error handler function (%d)\n", line);
+            break;
+        case IOP_INVALID_TYPE:
+            printf("IOP_INVALID_TYPE (%d)\n", line);
+            break;
+        default:
+            printf("unknown error %i (%d)\n", err, line);
+            break;
+    }
 
     // Dump stacktrace.
-    luaL_traceback(L, L, NULL, 1);
-    printf("%s\n", lua_tostring(L, -1));
+    luaL_traceback(L, L, NULL, 0); // -1?
+    printf("%s | %s | %s\n", lua_tostring(L, -1), lua_tostring(L, -2), lua_tostring(L, -3));
+    //p_DumpStack(L);
 
     lua_pushstring(L, buff);
     lua_error(L); // never returns
-
-    return RS_PASS;
 }
 
 //--------------------------------------------------------//
@@ -250,17 +268,17 @@ int p_DumpStack(lua_State *L)
 
         switch(t)
         {
-            case LUA_TSTRING:        snprintf(buff, CLI_BUFF_LEN, "ind:%d string:%s ", i, lua_tostring(L, i));   break;
-            case LUA_TBOOLEAN:       snprintf(buff, CLI_BUFF_LEN, "ind:%d bool:%s ", i, lua_toboolean(L, i) ? "true" : "false");   break;
-            case LUA_TNUMBER:        snprintf(buff, CLI_BUFF_LEN, "ind:%d number:%g ", i, lua_tonumber(L, i));   break;
-            case LUA_TNIL:           snprintf(buff, CLI_BUFF_LEN, "ind:%d nil", i);   break;
-            case LUA_TNONE:          snprintf(buff, CLI_BUFF_LEN, "ind:%d none", i);   break;
+            case LUA_TSTRING:        snprintf(buff, CLI_BUFF_LEN, "index:%d string:%s ", i, lua_tostring(L, i));   break;
+            case LUA_TBOOLEAN:       snprintf(buff, CLI_BUFF_LEN, "index:%d bool:%s ", i, lua_toboolean(L, i) ? "true" : "false");   break;
+            case LUA_TNUMBER:        snprintf(buff, CLI_BUFF_LEN, "index:%d number:%g ", i, lua_tonumber(L, i));   break;
+            case LUA_TNIL:           snprintf(buff, CLI_BUFF_LEN, "index:%d nil", i);   break;
+            case LUA_TNONE:          snprintf(buff, CLI_BUFF_LEN, "index:%d none", i);   break;
             case LUA_TFUNCTION:
             case LUA_TTABLE:
             case LUA_TTHREAD:
             case LUA_TUSERDATA:
-            case LUA_TLIGHTUSERDATA: snprintf(buff, CLI_BUFF_LEN, "ind:%d %s:%p ", i, lua_typename(L, t), lua_topointer(L, i));   break;
-            default:                 snprintf(buff, CLI_BUFF_LEN, "ind:%d type:%d", i, t);   break;
+            case LUA_TLIGHTUSERDATA: snprintf(buff, CLI_BUFF_LEN, "index:%d %s:%p ", i, lua_typename(L, t), lua_topointer(L, i));   break;
+            default:                 snprintf(buff, CLI_BUFF_LEN, "index:%d type:%d", i, t);   break;
         }
 
         board_CliWriteLine(buff);
@@ -270,7 +288,6 @@ int p_DumpStack(lua_State *L)
 }
 
 //--------------------------------------------------------//
-
 int p_cliwr(lua_State* L)
 {
     ///// Get function arguments.
@@ -285,15 +302,13 @@ int p_cliwr(lua_State* L)
 }
 
 //--------------------------------------------------------//
-//  local start = luainterop.msec()
-
 int p_msec(lua_State* L)
 {
     ///// Get function arguments.
     // none
 
     ///// Do the work.
-    unsigned int msec = common_GetMsec();
+    unsigned int msec = board_GetCurrentUsec() / 1000;
 
     ///// Push return values.
     lua_pushinteger(L, msec);
@@ -334,7 +349,7 @@ int p_digin(lua_State* L)
 
 
 //--------------------------------------------------------//
-/// Map functions in the module.
+/// Map lua functions to C functions.
 static const luaL_Reg luainteroplib[] =
 {
 //  { lua func, c func }
@@ -353,7 +368,6 @@ int p_OpenLuainterop (lua_State *L)
 {
     // Register our C <-> Lua functions.
     luaL_newlib(L, luainteroplib);
-
     return 1;
 }
 

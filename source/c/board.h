@@ -4,7 +4,7 @@
 
 #include "common.h"
 
-/// @brief Interface to the hardware board. Ours is simulated, yours would be completely different.
+/// @brief Interface to the hardware board. This has simulated digital IO, timer, CLI.
 
 //---------------- Public API ----------------------//
 
@@ -22,15 +22,12 @@
 #define DIG_OUT_3 6
 
 
-//---------------- Digital IO Functions -----------------//
+//---------------- Main Functions -----------------//
 
 /// Type: Function pointer for registration of digital input change callbacks.
 /// @param which The digital input whose state has changed.
 /// @param value The new state of the input.
 typedef void (*board_DigInterrupt_t)(unsigned int which, bool value);
-
-/// Type: Function pointer for handling of timer ticks.
-typedef void (*board_TimerInterrupt_t)(void);
 
 /// Initialize the component.
 /// @return Status.
@@ -45,6 +42,7 @@ int board_EnableInterrupts(bool enb);
 /// @return Status.
 int board_Destroy(void);
 
+// int board_Tick();
 
 //---------------- Digital IO Functions -----------------//
 
@@ -68,30 +66,24 @@ int board_ReadDig(unsigned int pin, bool* value);
 
 //---------------- CLI Functions -----------------//
 
-/// Open a cli.
+/// Open a cli (polled).
 /// @param channel Specific channel.
 /// @return Status.
 int board_CliOpen(unsigned int channel);
 
-/// Read a line from a cli channel. This does not block. Buffers chars until EOL.
+/// Read a line from a cli. This does not block. Buffers chars until EOL.
 /// @param buff Data buffer. Will be a zero-terminated string.
 /// @param num Max length of buff.
-/// @return Status.
+/// @return Status. RS_PASS if buff is valid otherwise RS_FAIL.
 int board_CliReadLine(char* buff, unsigned int num);
 
-/// Write a line to a cli channel.
+/// Write a line to a cli.
 /// @param buff What to send as a zero-terminated string.
 /// @return Status.
 int board_CliWriteLine(const char* format, ...);
 
 
 //---------------- Timer Functions -----------------//
-
-/// Client registration for timer interrupts.
-/// @param msec How often in msec.
-/// @param fp Callback function.
-/// @return Status.
-int board_RegTimerInterrupt(unsigned int msec, board_TimerInterrupt_t fp);
 
 /// Get number of microseconds since beginning.
 /// In an embedded system this would be supplied by a hardware clock source.

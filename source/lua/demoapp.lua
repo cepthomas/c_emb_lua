@@ -14,14 +14,23 @@ state_type = {
   [3] = 'DONE'         -- All done
 }
 
+-- typedef struct
+-- {
+--     double f1;          ///> A value
+--     int f2;             ///> Another value
+--     state_type_t state; ///> Another value
+--     const char* f3;     ///> Yet another
+-- } my_data_t;
+
 ------------------------- Main loop ----------------------------------------------------
 
 li.cliwr("Module initialization")
 
 -- for n in pairs(_G) do print(n) end
 
--- Process the passed data.
-slog = string.format ("my_data f1:%g f2:%d state:%s f3:%s", my_data.f1, my_data.f2, state_type[my_data.state], my_data.f3)
+-- Process the data passed from C. my_data contains the equivalent of my_data_t.
+state_name = state_type[my_data.state]
+slog = string.format ("my_data f1:%g f2:%d state:%s f3:%s", my_data.f1, my_data.f2, state_name, my_data.f3)
 li.cliwr(slog)
 
 -- Start working.
@@ -35,7 +44,7 @@ for i = 1, 10 do
   while counter < 1000 do
     counter = counter + 1
   end
-  ut.sleep(200)
+  -- ut.sleep(200)
 
   -- Plays well with others.
   coroutine.yield() --TODOX

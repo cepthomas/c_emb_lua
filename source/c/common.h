@@ -14,7 +14,7 @@
 
 //---------------- Public Types ----------------------//
 
-/// Demonstration enum.
+/// Demo enum.
 typedef enum
 {
     READY = 1,      ///> Ready to be scheduled
@@ -23,7 +23,7 @@ typedef enum
 } state_type_t;
 
 
-/// Demonstration struct.
+/// Demo struct.
 typedef struct
 {
     double f1;          ///> A value
@@ -58,18 +58,5 @@ static const int RS_EXIT = -3;
 
 //---------------- Public Functions ----------------------//
 
-/// Initialize the module.
-/// @return Status.
-int common_Init(void);
-
-/// Returns the number of milliseconds since the app was started.
-/// @return The msec.
-unsigned int common_GetMsec(void);
-
-/// Safe convert a string to integer.
-/// @param str The input.
-/// @param val The output.
-/// @return Valid conversion.
-bool common_Strtoi(const char* str, int* val);
 
 #endif // COMMON_H
