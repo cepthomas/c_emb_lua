@@ -60,7 +60,13 @@ static void p_Usage(void);
 /// @param str The input.
 /// @param val The output.
 /// @return Valid conversion.
-bool p_StrToNum(const char* str, double* val);
+bool p_StrToDouble(const char* str, double* val);
+
+/// Safe convert a string to integer.
+/// @param str The input.
+/// @param val The output.
+/// @return Valid conversion.
+bool p_StrToInt(const char* str, int* val);
 
 /// Sleep for msec.
 /// @param msec How long.
@@ -155,11 +161,6 @@ int exec_Run(const char* fn)
 
     // ??? int lua_pcallk (lua_State *L, int nargs, int nresults, int msgh, lua_KContext ctx, lua_KFunction k);
 
-    // TODO A quick test. Do this after loading the file then running it.
-    // double d;
-    // iop_Calc(p_lscript, 1.1, 2.2, &d);
-    // LOG_DEBUG("iop_Calc:%g", d);
-
     // You call lua_resume on a thread returned by lua_newthread, not lua_newstate.
     // So in your code you would either have to change the first lua_resume to lua_(p)call:
     // or swap luaL_loadfile for luaL_dofile:
@@ -206,10 +207,11 @@ int exec_Run(const char* fn)
                 p_script_running = stat != RS_EXIT;
                 stat = p_ProcessCommand(p_cli_buf);
             }
-
             p_Sleep(100);
 
         } while (p_script_running);
+
+        p_ProcessCommand("c 1 2");//TODO test
 
         // Script complete now.
         p_script_running = false;
@@ -277,7 +279,7 @@ int p_ProcessCommand(const char* sin)
                     double x = -1;
                     double y = -1;
                     double res = -1;
-                    if(p_StrToNum(opts[1], &x) && p_StrToNum(opts[2], &y))
+                    if(p_StrToDouble(opts[1], &x) && p_StrToDouble(opts[2], &y))
                     {
                         iop_Calc(p_lscript, x, y, &res);
                         board_CliWriteLine("%d + %d = %g", x, y, res);
@@ -289,9 +291,9 @@ int p_ProcessCommand(const char* sin)
             case 'r':
                 if(oind == 2)
                 {
-                    double pin = -1;
+                    int pin = -1;
                     bool bval;
-                    if(p_StrToNum(opts[1], &pin))
+                    if(p_StrToInt(opts[1], &pin))
                     {
                         board_ReadDig((unsigned int)pin, &bval);
                         board_CliWriteLine("read pin:%d = %s", pin, bval ? "t" : "f");
@@ -303,10 +305,10 @@ int p_ProcessCommand(const char* sin)
             case 'w':
                 if(oind == 3)
                 {
-                    double pin = -1;
+                    int pin = -1;
                     bool value;
 
-                    if(p_StrToNum(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
+                    if(p_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
                     {
                         value = opts[2][0] == 't';
                         board_WriteDig((unsigned int)pin, value);
@@ -349,7 +351,29 @@ void p_Usage(void)
 }
 
 //--------------------------------------------------------//
-bool p_StrToNum(const char* str, double* val)
+bool p_StrToDouble(const char* str, double* val)
+{
+    bool valid = true;
+    char* p;
+
+    errno = 0;
+    *val = strtof(str, &p);
+    if(errno == ERANGE)
+    {
+        // Mag is too large.
+        valid = false;
+    }
+    else if(p == str)
+    {
+        // Bad string.
+        valid = false;
+    }
+
+    return valid;
+}
+
+//--------------------------------------------------------//
+bool p_StrToInt(const char* str, int* val)
 {
     bool valid = true;
     char* p;
