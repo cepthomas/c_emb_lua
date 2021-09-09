@@ -19,19 +19,19 @@ int main(int argc, char* argv[])
             {
                 // Bad thing happened.
                 ret = 3;
-                printf("exec_run() failed\n");
+                printf("!!! exec_run() failed\n");
             }
         }
         else
         {
             ret = 2;
-            printf("exec_init() failed\n");
+            printf("!!! exec_init() failed\n");
         }
     }
     else
     {
         ret = 1;
-        printf("invalid args\n");
+        printf("!!! invalid args\n");
     }
 
 

@@ -7,6 +7,8 @@ local li = require "luainterop"
 local ut = require "utils"
 local math = require "math"
 
+-- print("*** script 1")
+
 -- This is the same as the C type.
 state_type = {
   [1] = 'READY',       -- Ready to be scheduled
@@ -14,17 +16,10 @@ state_type = {
   [3] = 'DONE'         -- All done
 }
 
--- typedef struct
--- {
---     double f1;          ///> A value
---     int f2;             ///> Another value
---     state_type_t state; ///> Another value
---     const char* f3;     ///> Yet another
--- } my_data_t;
-
 ------------------------- Main loop ----------------------------------------------------
 
-li.cliwr("Module initialization")
+li.cliwr("demoapp module initialization")
+-- print("*** script 2")
 
 -- for n in pairs(_G) do print(n) end
 
@@ -32,6 +27,8 @@ li.cliwr("Module initialization")
 state_name = state_type[my_data.state]
 slog = string.format ("my_data f1:%g f2:%d state:%s f3:%s", my_data.f1, my_data.f2, state_name, my_data.f3)
 li.cliwr(slog)
+
+-- print("*** script 3")
 
 -- Start working.
 li.cliwr("do some pretend script work then yield")

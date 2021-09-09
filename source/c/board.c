@@ -5,6 +5,7 @@
 #include <conio.h>
 #include <stdarg.h>
 
+#include "logger.h"
 #include "board.h"
 
 

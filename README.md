@@ -13,7 +13,7 @@ It demonstrates:
 - It supports only windows (search WIN32) right now but should be easy to convert to linux or bare metal.
 
 # Files
-- [Conventions](https://github.com/cepthomas/c_bag_of_tricks/blob/master/CONVENTIONS.md). Slight variations to keep C and lua names consistent.
+- [Conventions](https://github.com/cepthomas/c_bag_of_tricks/blob/master/CONVENTIONS.md).
 - [Modular model](https://github.com/cepthomas/c_modular).
 - `c` folder:
     - main.c - Entry stub calls exec.

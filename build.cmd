@@ -2,6 +2,8 @@
 
 echo off
 
+cls
+
 :: Setup dirs and files.
 mkdir build
 cd build

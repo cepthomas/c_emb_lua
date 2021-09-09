@@ -5,6 +5,7 @@
 #include "common.h"
 #include "board.h"
 #include "luainterop.h"
+#include "logger.h"
 #include "exec.h"
 
 #ifdef WIN32
@@ -55,11 +56,11 @@ static int p_StopScript(void);
 /// @brief Print usage.
 static void p_Usage(void);
 
-/// Safe convert a string to integer.
+/// Safe convert a string to double.
 /// @param str The input.
 /// @param val The output.
 /// @return Valid conversion.
-bool p_Strtoi(const char* str, int* val);
+bool p_StrToNum(const char* str, double* val);
 
 /// Sleep for msec.
 /// @param msec How long.
@@ -74,11 +75,13 @@ int exec_Init(void)
     int stat = RS_PASS;
 
     // Init stuff.
+    logger_Init("C:\\Dev\\repos\\c_emb_lua\\_log.txt");
+    logger_SetFilters(LVL_DEBUG);
     p_loop_running = false;
     p_lmain = luaL_newstate();
     // Load libraries.
     luaL_openlibs(p_lmain);
-    li_preload(p_lmain);
+    iop_Preload(p_lmain);
 
     p_last_usec = board_GetCurrentUsec();
 
@@ -103,6 +106,7 @@ int exec_Init(void)
 int exec_Run(const char* fn)
 {
     int stat = RS_PASS;
+    int lua_stat = 0;
 
     // Let her rip!
     board_EnableInterrupts(true);
@@ -110,27 +114,51 @@ int exec_Run(const char* fn)
 
     p_Usage();
 
-    // p_StartScript(fn);
+    // was p_StartScript(fn);
 
     // Set up a second Lua thread so we can background execute the script.
     p_lscript = lua_newthread(p_lmain);
-    // printf(">>>p_lmain:%p\r\n", p_lmain);
-    // printf(">>>p_lscript:%p\r\n", p_lscript);
+    LOG_DEBUG("p_lmain:%p", p_lmain);
+    LOG_DEBUG("p_lscript:%p", p_lscript);
+    iop_DumpStack(p_lscript, "exec_Run 1 - stack:empty");
 
+    // Load the script/file we are going to run. lua_load() pushes the compiled chunk as a Lua function on top of the stack.
+    lua_stat = luaL_loadfile(p_lscript, fn); //luaL_dofile??
+    iop_DumpStack(p_lscript, "exec_Run 2 - stack:function");
+
+    // Open all std libs.
     luaL_openlibs(p_lscript);
-    li_preload(p_lscript);
+    iop_DumpStack(p_lscript, "exec_Run 3 - stack:function");
+
+    // // Load my stuff. This table gets pushed on the stack.
+//    iop_Preload(p_lscript);
+    //lua_rotate(L, 3, 2);  /* move them below function's arguments */
+    iop_DumpStack(p_lscript, "exec_Run 4 - stack:table, function");
 
     // Give it data.
     my_data_t md = { 12.789, 90909, IN_PROCESS, "Hey diddle diddle" };
-    li_my_data(p_lscript, &md);
+    iop_SetGlobalMyData(p_lscript, &md, "my_data");
+    iop_DumpStack(p_lscript, "exec_Run 5 - stack:table, function");
 
-    // Load the script/file we are going to run.
-    int lua_stat = luaL_loadfile(p_lscript, fn);
+    // Priming run of the loaded Lua script to create the script's global variables
+    //lua_stat = lua_pcall(p_lscript, 0, 0, 0);
+    //if (lua_stat != 0)
+    // {
+    //     LOG_ERROR("lua_pcall() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
+    // }
+    //or?...
+    // lua_stat = lua_resume(p_lscript, 0, 0);
+    // if (lua_stat >= LUA_ERRRUN)
+    // {
+    //     LOG_ERROR("lua_resume() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
+    // }
+
+    // ??? int lua_pcallk (lua_State *L, int nargs, int nresults, int msgh, lua_KContext ctx, lua_KFunction k);
 
     // TODO A quick test. Do this after loading the file then running it.
-    double d;
-    li_calc(p_lscript, 11, 22, &d);
-    printf(">>>li_calc:%g\r\n", d);
+    // double d;
+    // iop_Calc(p_lscript, 1.1, 2.2, &d);
+    // LOG_DEBUG("iop_Calc:%g", d);
 
     // You call lua_resume on a thread returned by lua_newthread, not lua_newstate.
     // So in your code you would either have to change the first lua_resume to lua_(p)call:
@@ -151,7 +179,7 @@ int exec_Run(const char* fn)
             switch(lua_stat)
             {
                 case LUA_YIELD:
-                    //board_CliWriteLine("===LUA_YIELD.");
+                    LOG_DEBUG("===LUA_YIELD.");
                     break;
 
                 case LUA_OK:
@@ -160,7 +188,7 @@ int exec_Run(const char* fn)
 
                 default:
                     // Unexpected error.
-                    li_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
+                    iop_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
                     break;
             }
 
@@ -174,7 +202,7 @@ int exec_Run(const char* fn)
             stat = board_CliReadLine(p_cli_buf, CLI_BUFF_LEN);
             if(stat == RS_PASS && strlen(p_cli_buf) > 0)
             {
-                printf("===got:%s\r\n", p_cli_buf);
+                // LOG_DEBUG("|||got:%s", p_cli_buf);
                 p_script_running = stat != RS_EXIT;
                 stat = p_ProcessCommand(p_cli_buf);
             }
@@ -182,7 +210,6 @@ int exec_Run(const char* fn)
             p_Sleep(100);
 
         } while (p_script_running);
-        
 
         // Script complete now.
         p_script_running = false;
@@ -190,7 +217,7 @@ int exec_Run(const char* fn)
     }
     else
     {
-        li_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
+        iop_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
     }
 
     // Done, close up shop.
@@ -198,6 +225,7 @@ int exec_Run(const char* fn)
     board_EnableInterrupts(false);
 
     p_StopScript(); // just in case
+    lua_close(p_lscript);
     lua_close(p_lmain);
 
     return stat == RS_EXIT ? 0 : stat;
@@ -208,7 +236,7 @@ int exec_Run(const char* fn)
 //---------------------------------------------------//
 void p_DigInputHandler(unsigned int which, bool value)
 {
-    li_hinput(p_lscript, which, value);
+    iop_Hinput(p_lscript, which, value);
 }
 
 //---------------------------------------------------//
@@ -246,12 +274,12 @@ int p_ProcessCommand(const char* sin)
             case 'c':
                 if(oind == 3)
                 {
-                    int x = -1;
-                    int y = -1;
+                    double x = -1;
+                    double y = -1;
                     double res = -1;
-                    if(p_Strtoi(opts[1], &x) && p_Strtoi(opts[2], &y))
+                    if(p_StrToNum(opts[1], &x) && p_StrToNum(opts[2], &y))
                     {
-                        li_calc(p_lscript, x, y, &res);
+                        iop_Calc(p_lscript, x, y, &res);
                         board_CliWriteLine("%d + %d = %g", x, y, res);
                         valid = true;
                     }
@@ -261,9 +289,9 @@ int p_ProcessCommand(const char* sin)
             case 'r':
                 if(oind == 2)
                 {
-                    int pin = -1;
+                    double pin = -1;
                     bool bval;
-                    if(p_Strtoi(opts[1], &pin))
+                    if(p_StrToNum(opts[1], &pin))
                     {
                         board_ReadDig((unsigned int)pin, &bval);
                         board_CliWriteLine("read pin:%d = %s", pin, bval ? "t" : "f");
@@ -275,10 +303,10 @@ int p_ProcessCommand(const char* sin)
             case 'w':
                 if(oind == 3)
                 {
-                    int pin = -1;
+                    double pin = -1;
                     bool value;
 
-                    if(p_Strtoi(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
+                    if(p_StrToNum(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
                     {
                         value = opts[2][0] == 't';
                         board_WriteDig((unsigned int)pin, value);
@@ -311,33 +339,6 @@ int p_StopScript()
 }
 
 //---------------------------------------------------//
-int p_ProcessLuaError(int lua_stat)
-{
-    int status = RS_PASS;
-
-    p_script_running = false;
-
-    static char buff[20];
-    switch(lua_stat)
-    {
-
-        case LUA_OK:        strcpy(buff, "LUA_OK"); break;
-        case LUA_YIELD:     strcpy(buff, "LUA_YIELD"); break;
-        case LUA_ERRRUN:    strcpy(buff, "LUA_ERRRUN"); break;
-        case LUA_ERRSYNTAX: strcpy(buff, "LUA_ERRSYNTAX"); break;
-        case LUA_ERRMEM:    strcpy(buff, "LUA_ERRMEM"); break;
-        case LUA_ERRGCMM:   strcpy(buff, "LUA_ERRGCMM"); break;
-        case LUA_ERRERR:    strcpy(buff, "LUA_ERRERR"); break;
-        default:            snprintf(buff, 20, "%d", lua_stat); break;
-    }
-
-    // The error string from Lua.
-    board_CliWriteLine("%s: %s", buff, lua_tostring(p_lscript, -1));
-
-    return status;
-}
-
-//---------------------------------------------------//
 void p_Usage(void)
 {
     board_CliWriteLine("Supported commands:");
@@ -348,7 +349,7 @@ void p_Usage(void)
 }
 
 //--------------------------------------------------------//
-bool p_Strtoi(const char* str, int* val)
+bool p_StrToNum(const char* str, double* val)
 {
     bool valid = true;
     char* p;
