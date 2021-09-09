@@ -136,8 +136,8 @@ int exec_Run(const char* fn)
     luaL_openlibs(p_lscript);
     iop_DumpStack(p_lscript, "exec_Run 3 - stack:function");
 
-    // // Load my stuff. This table gets pushed on the stack.
-//    iop_Preload(p_lscript);
+    // Load my stuff. This table gets pushed on the stack.
+    iop_Preload(p_lscript);
     //lua_rotate(L, 3, 2);  /* move them below function's arguments */
     iop_DumpStack(p_lscript, "exec_Run 4 - stack:table, function");
 
@@ -211,7 +211,7 @@ int exec_Run(const char* fn)
 
         } while (p_script_running);
 
-        p_ProcessCommand("c 1 2");//TODO test
+        p_ProcessCommand("c 1 2");//=================================TODO test
 
         // Script complete now.
         p_script_running = false;

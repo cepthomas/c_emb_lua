@@ -42,6 +42,8 @@ int p_OpenLuainterop (lua_State *L);
 /// Add to existing lua errors.
 #define IOP_INVALID_TYPE 100
 
+LUALIB_API void luaL_tracebackEx(lua_State *L, lua_State *L1, const char *msg, int level);
+
 
 //---------------- Public Implementation -------------//
 
@@ -172,9 +174,8 @@ void iop_LuaError(lua_State* L, int err, int line, const char* format, ...)
     LOG_ERROR(buff);
 
     // Dump trace.
-    luaL_traceback(L, L, NULL, 0); // -1?
+    luaL_tracebackEx(L, L, NULL, 1);
     snprintf(buff, CLI_BUFF_LEN-1, "   %s | %s | %s", lua_tostring(L, -1), lua_tostring(L, -2), lua_tostring(L, -3));
-    //p_DumpStack(L);
     LOG_ERROR(buff);
 
     // lua_pushstring(L, buff1);
