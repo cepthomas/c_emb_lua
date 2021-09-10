@@ -2,7 +2,7 @@
 Lua utilities.
 --]]
 
-local li = require "luainterop"
+local li = require "luainterop" -- c module
 
 -- Create the namespace/module.
 local M = {}
@@ -32,7 +32,7 @@ end
 -- @param time Sleep time in msec.
 function M.sleep(time)
   local timer = M.delay_timer(time)
-  while not timer.status() do coroutine.yield() end --TODOX
+  while not timer.status() do coroutine.yield() end
 end
 
 -- Concat the contents of the parameter list, separated by the string delimiter.

@@ -3,7 +3,7 @@ Lua script for a simplistic multithreaded/coroutine application. Uses luainterop
 --]]
 
 
-local li = require "luainterop"
+local li = require "luainterop" -- c module
 local ut = require "utils"
 local math = require "math"
 
@@ -18,8 +18,7 @@ state_type = {
 
 ------------------------- Main loop ----------------------------------------------------
 
-li.cliwr("demoapp module initialization")
--- print("*** script 2")
+li.cliwr("demoapp: module initialization")
 
 -- for n in pairs(_G) do print(n) end
 
@@ -28,13 +27,11 @@ state_name = state_type[my_data.state]
 slog = string.format ("my_data f1:%g f2:%d state:%s f3:%s", my_data.f1, my_data.f2, state_name, my_data.f3)
 li.cliwr(slog)
 
--- print("*** script 3")
-
 -- Start working.
-li.cliwr("do some pretend script work then yield")
+li.cliwr("demoapp: do some pretend script work then yield")
 
 for i = 1, 10 do
-  li.cliwr("doing loop num: " .. i)
+  li.cliwr("demoapp: doing loop number " .. i)
 
   -- Do pretend work.
   counter = 0
@@ -44,15 +41,16 @@ for i = 1, 10 do
   -- ut.sleep(200)
 
   -- Plays well with others.
-  coroutine.yield() --TODOX
+  coroutine.yield()
 end
 
+li.cliwr("demoapp: done loop")
 
 -------------- Handlers for commands from C --------------------------
 
--- Pin input has arrived from board.
+-- Pin input has arrived from board via c.
 function hinput (pin, value) -- TODO force from cli
-  li.cliwr(string.format("lua got input pin %d = %s ", pin, tostring(value)))
+  li.cliwr(string.format("demoapp: got hinput pin:%d value:%s ", pin, tostring(value)))
 end
 
 -- Dumb calculator, only does addition.

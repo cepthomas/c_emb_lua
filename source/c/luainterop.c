@@ -352,5 +352,20 @@ int p_OpenLuainterop (lua_State *L)
 {
     // Register our C <-> Lua functions.
     luaL_newlib(L, luainteroplib);
+    lua_setglobal(L, "luainterop");
+
+// Probably, you should add lua_setglobal(L, "mylib"); just after luaL_newlib() and call your function using its full name mylib.mysin(2)
+
+// luaL_newlib creates a new table and populates it from a list of functions. Your function mysin is inside this table and is not a global function. If you want it to be a global function, use lua_register.
+
+
+// void luaL_newlib (lua_State *L, const luaL_Reg l[]);
+// Creates a new table and registers there the functions in list l.
+// It is implemented as the following macro:
+//      (luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
+
+    //luaL_register(L, "test", testlib); ... #define luaL_register(L,n,l)	(luaL_openlib(L,(n),(l),0))
+//#define luaL_register(L,n,l)	(luaL_openlib(L,(n),(l),0))
+
     return 1;
 }
