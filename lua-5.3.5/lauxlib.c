@@ -122,7 +122,7 @@ static int lastlevel (lua_State *L) {
 }
 
 
-LUALIB_API void luaL_traceback (lua_State *L, lua_State *L1,
+LUALIB_API void luaL_traceback_original (lua_State *L, lua_State *L1,
                                 const char *msg, int level) {
   lua_Debug ar;
   int top = lua_gettop(L);
@@ -152,8 +152,8 @@ LUALIB_API void luaL_traceback (lua_State *L, lua_State *L1,
   lua_concat(L, lua_gettop(L) - top);
 }
 
-//TODO custom version. https://luyuhuang.tech/2020/12/01/lua-traceback-with-parameters.html
-LUALIB_API void luaL_tracebackEx(lua_State *L, lua_State *L1, const char *msg, int level)
+//TODO custom version from https://luyuhuang.tech/2020/12/01/lua-traceback-with-parameters.html
+LUALIB_API void luaL_traceback(lua_State *L, lua_State *L1, const char *msg, int level)
 {
   lua_Debug ar;
   int top = lua_gettop(L);

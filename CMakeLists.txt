@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
 # needs -g to debug.
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-deprecated-declarations")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-deprecated-declarations -Wno-unused-variable")
 
 include_directories(
     source/c
@@ -19,6 +19,7 @@ add_executable(cemblua
     source/c/exec.c
     source/c/board.c
     source/c/luainterop.c
+    source/c/luautils.c
     source/c/logger.c
     lua-5.3.5/lapi.c
     lua-5.3.5/lauxlib.c

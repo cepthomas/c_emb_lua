@@ -2,7 +2,7 @@
 #ifndef LUAINTEROP_H
 #define LUAINTEROP_H
 
-/// @brief Generic stuff for talking with lua.
+/// @brief App specific stuff for talking with lua.
 
 #include "lua.h"
 #include "lualib.h"
@@ -35,20 +35,5 @@ void iop_Hinput(lua_State* L, unsigned int pin, bool value);
 /// @param L Lua environment.
 /// @return Status.
 void iop_Preload(lua_State* L);
-
-//---------------- Uilities TODO other file? --------------------------//
-
-/// Dump the lua stack contents.
-/// @param L Lua state.
-/// @param info Extra info.
-int iop_DumpStack(lua_State *L, const char* info);
-
-/// Report a bad thing detected by this component.
-/// @param L Lua state.
-/// @param err Specific Lua error.
-/// @param line Where
-/// @param format Standard string stuff.
-void iop_LuaError(lua_State* L, int err, int line, const char* format, ...);
-
 
 #endif // LUAINTEROP_H

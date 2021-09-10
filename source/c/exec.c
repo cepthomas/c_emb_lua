@@ -5,6 +5,7 @@
 #include "common.h"
 #include "board.h"
 #include "luainterop.h"
+#include "luautils.h"
 #include "logger.h"
 #include "exec.h"
 
@@ -126,49 +127,37 @@ int exec_Run(const char* fn)
     p_lscript = lua_newthread(p_lmain);
     LOG_DEBUG("p_lmain:%p", p_lmain);
     LOG_DEBUG("p_lscript:%p", p_lscript);
-    iop_DumpStack(p_lscript, "lua_newthread() - stack:empty");
+    lu_DumpStack(p_lscript, "lua_newthread() - stack:empty", __LINE__);
 
     // Load the script/file we are going to run. lua_load() pushes the compiled chunk as a Lua function on top of the stack.
     lua_stat = luaL_loadfile(p_lscript, fn); //luaL_dofile??
-    iop_DumpStack(p_lscript, "luaL_loadfile() - stack:function");
+    lu_DumpStack(p_lscript, "luaL_loadfile()", __LINE__);
 
     // Open all std libs.
     luaL_openlibs(p_lscript);
-    iop_DumpStack(p_lscript, "luaL_openlibs() - stack:function");
+    lu_DumpStack(p_lscript, "luaL_openlibs()", __LINE__);
+    // // Pop the table off the stack as it interferes with calling the module function.
+    // lua_pop(p_lscript, 1);
 
     // Load my stuff. This table gets pushed on the stack and global.
     iop_Preload(p_lscript);
-    iop_DumpStack(p_lscript, "iop_Preload() - stack:table, function");
+    lu_DumpStack(p_lscript, "iop_Preload()", __LINE__);
 
-
-    lua_pushglobaltable(p_lscript);         // Get global table
-    lua_pushnil(p_lscript);                 // put a nil key on stack
-    while (lua_next(p_lscript,-2) != 0)     // key(-1) is replaced by the next key(-1) in table(-2)
-    {
-        const char* name = lua_tostring(p_lscript, -2);   // Get key(-2) name
-        LOG_DEBUG("GLOBAL:%s", name);
-        lua_pop(p_lscript,1);                 // remove value(-1), now key on top at(-1)
-    }
-    lua_pop(p_lscript,1);                   // remove global table(-1)
-
-
-
-    int ll = lua_getglobal(p_lscript, "luainterop");
-    iop_DumpStack(p_lscript, "lua_getglobal(calc) - stack:function, table, function");
-
-    // Pop the table of the stack as it interferes with calling the module function.
+    // Pop the table off the stack as it interferes with calling the module function.
     lua_pop(p_lscript, 1);
-    iop_DumpStack(p_lscript, "lua_pop() - stack:function");
+    lu_DumpStack(p_lscript, "lua_pop()", __LINE__);
 
     // if the stack has n elements, then index 1 represents the first element (that is, the element that was pushed onto 
     // the stack first) and index n represents the last element; index -1 also represents the last element (that is, the 
     // element at the top) and index -n represents the first element.
 
 
-    // Give it data.
+    // Give it data. 
     my_data_t md = { 12.789, 90909, IN_PROCESS, "Hey diddle diddle" };
     iop_SetGlobalMyData(p_lscript, &md, "my_data"); // TODO pass as arg instead.
-    iop_DumpStack(p_lscript, "iop_SetGlobalMyData() - stack:function");
+    lu_DumpStack(p_lscript, "iop_SetGlobalMyData()", __LINE__);
+
+
 
     // Priming run of the loaded Lua script to create the script's global variables
     //lua_stat = lua_pcall(p_lscript, 0, 0, 0);
@@ -213,13 +202,15 @@ int exec_Run(const char* fn)
 
                 default:
                     // Unexpected error.
-                    iop_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
+                    lu_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
                     break;
             }
 
             p_Sleep(100);
         }
         while (lua_stat == LUA_YIELD);
+
+p_ProcessCommand("c 1 2");//=================================TODO test
 
         do
         {
@@ -235,7 +226,6 @@ int exec_Run(const char* fn)
 
         } while (p_script_running);
 
-        p_ProcessCommand("c 1 2");//=================================TODO test
 
         // Script complete now.
         p_script_running = false;
@@ -243,7 +233,7 @@ int exec_Run(const char* fn)
     }
     else
     {
-        iop_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
+        lu_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
     }
 
     // Done, close up shop.
