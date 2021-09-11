@@ -55,7 +55,6 @@ void iop_Calc(lua_State* L, double x, double y, double* res)
     {
         PROCESS_LUA_ERROR(L, lstat, "get calc failed");
     }
-    // DUMP_STACK(L, "lua_getfield(calc)");
 
     ///// Push the arguments to the call.
     lua_pushnumber(L, x);
@@ -79,10 +78,10 @@ void iop_Hinput(lua_State* L, unsigned int pin, bool value)
     int lstat = 0;
 
     ///// Get the function to be called.
-    lstat = lua_getglobal(L, "hinput");
-    if(lstat >= LUA_ERRRUN)
+    int gtype = lua_getglobal(L, "hinput");
+    if(gtype == LUA_TNONE)
     {
-        PROCESS_LUA_ERROR(L, lstat, "lua_getglobal hinput() failed");
+        PROCESS_LUA_ERROR(L, lstat, "get hinput failed");
     }
 
     ///// Push the arguments to the call.
@@ -90,7 +89,7 @@ void iop_Hinput(lua_State* L, unsigned int pin, bool value)
     lua_pushboolean(L, value);
 
     ///// Use lua_pcall to do the actual call.
-    lstat = lua_pcall(L, 2, 1, 0);
+    lstat = lua_pcall(L, 2, 0, 0);
     if(lstat >= LUA_ERRRUN)
     {
         PROCESS_LUA_ERROR(L, lstat, "Call hinput() failed");

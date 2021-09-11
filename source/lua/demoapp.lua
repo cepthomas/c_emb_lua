@@ -51,7 +51,7 @@ end
 -------------- Handlers for commands from C --------------------------
 
 -- Pin input has arrived from board via c.
-function hinput (pin, value) -- TODO force from cli
+function hinput (pin, value)
   li.cliwr(string.format("demoapp: got hinput pin:%d value:%s ", pin, tostring(value)))
 end
 

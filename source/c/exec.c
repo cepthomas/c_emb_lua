@@ -179,7 +179,7 @@ int exec_Run(const char* fn)
         }
         while (lua_stat == LUA_YIELD);
 
-p_ProcessCommand("w 5 t");
+p_ProcessCommand("f 5 t");
 
         do
         {
@@ -265,6 +265,20 @@ int p_ProcessCommand(const char* sin)
                 }
                 break;
 
+            case 'f':
+                if(oind == 3)
+                {
+                    int pin = -1;
+
+                    if(p_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
+                    {
+                        bool value = opts[2][0] == 't';
+                        iop_Hinput(p_lscript, pin, value);
+                        valid = true;
+                    }
+                }
+                break;
+
             case 'r':
                 if(oind == 2)
                 {
@@ -283,11 +297,10 @@ int p_ProcessCommand(const char* sin)
                 if(oind == 3)
                 {
                     int pin = -1;
-                    bool value;
 
                     if(p_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
                     {
-                        value = opts[2][0] == 't';
+                        bool value = opts[2][0] == 't';
                         board_WriteDig((unsigned int)pin, value);
                         valid = true;
                     }
@@ -312,9 +325,10 @@ void p_Usage(void)
 {
     board_CliWriteLine("Supported commands:");
     board_CliWriteLine("  exit: x");
-    board_CliWriteLine("  calculator: c op1 op2");
-    board_CliWriteLine("  read io pin: r pin");
-    board_CliWriteLine("  write io pin: w pin t/f");
+    board_CliWriteLine("  tell script to run calculator: c op1 op2");
+    board_CliWriteLine("  tell script about a (fake) input pin change: f pin t/f");
+    board_CliWriteLine("  direct C read io pin: r pin");
+    board_CliWriteLine("  direct C write io pin: w pin t/f");
 }
 
 //--------------------------------------------------------//
