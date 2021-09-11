@@ -2,6 +2,9 @@
 #include <string.h>
 #include <conio.h>
 #include <unistd.h>
+#include <time.h>
+#include <sys/time.h>
+
 #include "common.h"
 #include "board.h"
 #include "luainterop.h"
@@ -9,13 +12,6 @@
 #include "logger.h"
 #include "exec.h"
 
-#ifdef WIN32
-#include <windows.h>
-#elif _POSIX_C_SOURCE >= 199309L
-#include <time.h>   // for nanosleep
-#else
-#include <unistd.h> // for usleep
-#endif
 
 //---------------- Private --------------------------//
 
@@ -50,10 +46,6 @@ static void p_DigInputHandler(unsigned int which, bool value);
 /// @return status
 static int p_ProcessCommand(const char* sin);
 
-/// @brief Stop the currently running script.
-/// @return status
-static int p_StopScript(void);
-
 /// @brief Print usage.
 static void p_Usage(void);
 
@@ -61,17 +53,17 @@ static void p_Usage(void);
 /// @param str The input.
 /// @param val The output.
 /// @return Valid conversion.
-bool p_StrToDouble(const char* str, double* val);
+static bool p_StrToDouble(const char* str, double* val);
 
 /// Safe convert a string to integer.
 /// @param str The input.
 /// @param val The output.
 /// @return Valid conversion.
-bool p_StrToInt(const char* str, int* val);
+static bool p_StrToInt(const char* str, int* val);
 
 /// Sleep for msec.
 /// @param msec How long.
-void p_Sleep(int msec);
+static void p_Sleep(int msec);
 
 
 //---------------- Public Implementation -------------//
@@ -82,29 +74,25 @@ int exec_Init(void)
     int stat = RS_PASS;
 
     // Init stuff.
-    logger_Init("C:\\Dev\\repos\\c_emb_lua\\_log.txt");
+    logger_Init("C:\\Dev\\repos\\c_emb_lua\\_log.txt"); //TODO config
     logger_SetFilters(LVL_DEBUG);
     p_loop_running = false;
     p_lmain = luaL_newstate();
-    // Load libraries.
+
+    // Load std libraries.
     luaL_openlibs(p_lmain);
-    // iop_Preload(p_lmain);
-
-    p_last_usec = board_GetCurrentUsec();
-
-    // Init components.
-    stat = board_Init();
 
     // Set up all board-specific stuff.
+    stat = board_Init();
     stat = board_CliOpen(0);
-
-    // Register for input interrupts.
     stat = board_RegDigInterrupt(p_DigInputHandler);
 
     // Init outputs.
     stat = board_WriteDig(DIG_OUT_1, true);
     stat = board_WriteDig(DIG_OUT_2, false);
     stat = board_WriteDig(DIG_OUT_3, true);
+
+    p_last_usec = board_GetCurrentUsec();
 
     return stat;
 }
@@ -121,70 +109,51 @@ int exec_Run(const char* fn)
 
     p_Usage();
 
-    // was p_StartScript(fn);
-
     // Set up a second Lua thread so we can background execute the script.
     p_lscript = lua_newthread(p_lmain);
-    LOG_DEBUG("p_lmain:%p", p_lmain);
-    LOG_DEBUG("p_lscript:%p", p_lscript);
-    lu_DumpStack(p_lscript, "lua_newthread() - stack:empty", __LINE__);
+    // LOG_DEBUG("p_lmain:%p", p_lmain);
+    // LOG_DEBUG("p_lscript:%p", p_lscript);
+    // DUMP_STACK(p_lscript, "lua_newthread() - stack:empty");
 
-    // Load the script/file we are going to run. lua_load() pushes the compiled chunk as a Lua function on top of the stack.
-    lua_stat = luaL_loadfile(p_lscript, fn); //luaL_dofile??
-    lu_DumpStack(p_lscript, "luaL_loadfile()", __LINE__);
-
-    // Open all std libs.
+    // Open std libs.
     luaL_openlibs(p_lscript);
-    lu_DumpStack(p_lscript, "luaL_openlibs()", __LINE__);
-    // // Pop the table off the stack as it interferes with calling the module function.
-    // lua_pop(p_lscript, 1);
+    // DUMP_STACK(p_lscript, "luaL_openlibs()");
 
-    // Load my stuff. This table gets pushed on the stack and global.
+    // Load app stuff. This table gets pushed on the stack and into globals.
     iop_Preload(p_lscript);
-    lu_DumpStack(p_lscript, "iop_Preload()", __LINE__);
+    // DUMP_STACK(p_lscript, "iop_Preload()");
 
     // Pop the table off the stack as it interferes with calling the module function.
     lua_pop(p_lscript, 1);
-    lu_DumpStack(p_lscript, "lua_pop()", __LINE__);
+    // DUMP_STACK(p_lscript, "lua_pop()");
 
-    // if the stack has n elements, then index 1 represents the first element (that is, the element that was pushed onto 
-    // the stack first) and index n represents the last element; index -1 also represents the last element (that is, the 
-    // element at the top) and index -n represents the first element.
-
+    // Now load the script/file we are going to run.
+    // lua_load() pushes the compiled chunk as a Lua function on top of the stack.
+    lua_stat = luaL_loadfile(p_lscript, fn);
+    // DUMP_STACK(p_lscript, "luaL_loadfile()");
 
     // Give it data. 
     my_data_t md = { 12.789, 90909, IN_PROCESS, "Hey diddle diddle" };
-    iop_SetGlobalMyData(p_lscript, &md, "my_data"); // TODO pass as arg instead.
-    lu_DumpStack(p_lscript, "iop_SetGlobalMyData()", __LINE__);
-
-
+    iop_SetGlobalMyData(p_lscript, &md, "my_static_data"); // TODO pass as arg instead.
+    // DUMP_STACK(p_lscript, "iop_SetGlobalMyData()");
 
     // Priming run of the loaded Lua script to create the script's global variables
-    //lua_stat = lua_pcall(p_lscript, 0, 0, 0);
-    //if (lua_stat != 0)
-    // {
-    //     LOG_ERROR("lua_pcall() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
-    // }
-    //or?...
-    // lua_stat = lua_resume(p_lscript, 0, 0);
-    // if (lua_stat >= LUA_ERRRUN)
-    // {
-    //     LOG_ERROR("lua_resume() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
-    // }
-
-    // ??? int lua_pcallk (lua_State *L, int nargs, int nresults, int msgh, lua_KContext ctx, lua_KFunction k);
-
-    // You call lua_resume on a thread returned by lua_newthread, not lua_newstate.
-    // So in your code you would either have to change the first lua_resume to lua_(p)call:
-    // or swap luaL_loadfile for luaL_dofile:
-
-    // If you're in a C function that has been called from Lua, and you want to know what thread you're in... just call lua_pushthread(L).
-    // Pushes the thread represented by L onto the stack. Returns 1 if this thread is the main thread of its state.
+    lua_stat = lua_pcall(p_lscript, 0, 0, 0);
+    if (lua_stat != LUA_OK)
+    {
+        LOG_ERROR("lua_pcall() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
+    }
 
     if(lua_stat == LUA_OK)
     {
         // Init the script. This also starts blocking execution.
         p_script_running = true;
+
+        int gtype = lua_getglobal(p_lscript, "do_it");
+        if(gtype == LUA_TNONE)
+        {
+           // PROCESS_LUA_ERROR(L, lstat, "get do_it failed");
+        }
 
         do
         {
@@ -202,15 +171,13 @@ int exec_Run(const char* fn)
 
                 default:
                     // Unexpected error.
-                    lu_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
+                    PROCESS_LUA_ERROR(p_lscript, lua_stat, "exec_Run() error");
                     break;
             }
 
-            p_Sleep(100);
+            p_Sleep(200);
         }
         while (lua_stat == LUA_YIELD);
-
-p_ProcessCommand("c 1 2");//=================================TODO test
 
         do
         {
@@ -219,32 +186,27 @@ p_ProcessCommand("c 1 2");//=================================TODO test
             if(stat == RS_PASS && strlen(p_cli_buf) > 0)
             {
                 // LOG_DEBUG("|||got:%s", p_cli_buf);
-                p_script_running = stat != RS_EXIT;
                 stat = p_ProcessCommand(p_cli_buf);
             }
             p_Sleep(100);
-
         } while (p_script_running);
 
-
         // Script complete now.
-        p_script_running = false;
         board_CliWriteLine("Finished script.");
     }
     else
     {
-        lu_LuaError(p_lscript, lua_stat, __LINE__, "exec_Run() error");
+        PROCESS_LUA_ERROR(p_lscript, lua_stat, "exec_Run() error");
     }
 
     // Done, close up shop.
     board_CliWriteLine("Goodbye - come back soon!");
     board_EnableInterrupts(false);
 
-    p_StopScript(); // just in case
-    lua_close(p_lscript);
+    // lua_close(p_lscript);
     lua_close(p_lmain);
 
-    return stat == RS_EXIT ? 0 : stat;
+    return stat == RS_ERR ? 1 : RS_PASS;
 }
 
 //---------------- Private --------------------------//
@@ -282,9 +244,8 @@ int p_ProcessCommand(const char* sin)
         switch(opts[0][0])
         {
             case 'x':
-                p_StopScript();
                 valid = true;
-                stat = RS_EXIT;
+                p_script_running = false;
                 break;
 
             case 'c':
@@ -296,7 +257,7 @@ int p_ProcessCommand(const char* sin)
                     if(p_StrToDouble(opts[1], &x) && p_StrToDouble(opts[2], &y))
                     {
                         iop_Calc(p_lscript, x, y, &res);
-                        board_CliWriteLine("%d + %d = %g", x, y, res);
+                        board_CliWriteLine("%g + %g = %g", x, y, res);
                         valid = true;
                     }
                 }
@@ -326,10 +287,7 @@ int p_ProcessCommand(const char* sin)
                     {
                         value = opts[2][0] == 't';
                         board_WriteDig((unsigned int)pin, value);
-                        //board_CliWriteLine("write pin:%d = %d", pin, value);
-                        //ctolua_HandleDigInput(p_lscript, (unsigned int)pin, value);
                         valid = true;
-                        
                     }
                 }
                 break;
@@ -341,17 +299,10 @@ int p_ProcessCommand(const char* sin)
         // usage
         board_CliWriteLine("Invalid cmd:%s: ", sin);
         p_Usage();
+        stat = RS_FAIL;
     }
 
     return stat;
-}
-
-//---------------------------------------------------//
-int p_StopScript()
-{
-    int status = RS_PASS;
-    p_script_running = false;
-    return status;
 }
 
 //---------------------------------------------------//
@@ -411,16 +362,8 @@ bool p_StrToInt(const char* str, int* val)
 //--------------------------------------------------------//
 void p_Sleep(int msec)
 {
-#ifdef WIN32
-    Sleep(msec);
-#elif _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
     ts.tv_sec = msec / 1000;
     ts.tv_nsec = (msec % 1000) * 1000000;
     nanosleep(&ts, NULL);
-#else
-    if (msec >= 1000)
-      sleep(msec / 1000);
-    usleep((msec % 1000) * 1000);
-#endif
 }

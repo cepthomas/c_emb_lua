@@ -176,6 +176,7 @@ int board_CliWriteLine(const char* format, ...)
     va_list args;
     va_start(args, format);
     vsnprintf(buff, CLI_BUFF_LEN-1, format, args);
+    va_end(args);
 
     // Add a prompt. TODO fix
     printf("%s\r\n>", buff);

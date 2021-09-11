@@ -42,7 +42,6 @@ int board_EnableInterrupts(bool enb);
 /// @return Status.
 int board_Destroy(void);
 
-// int board_Tick();
 
 //---------------- Digital IO Functions -----------------//
 

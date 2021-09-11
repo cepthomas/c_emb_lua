@@ -72,31 +72,29 @@ void iop_SetGlobalMyData(lua_State* L, my_data_t* data, const char* name)
 void iop_Calc(lua_State* L, double x, double y, double* res)
 {
     int lstat = 0;
-
+    
     ///// Get the function to be called.
-    lstat = lua_getglobal(L, "luainterop");
-    lu_DumpStack(L, "lua_getglobal(luainterop)", __LINE__);
-    if(lstat >= LUA_ERRRUN)
+    int gtype = lua_getglobal(L, "calc");
+    if(gtype == LUA_TNONE)
     {
-        lu_LuaError(L, lstat, __LINE__, "lua_getglobal calc() failed");
+        PROCESS_LUA_ERROR(L, lstat, "get calc failed");
     }
+    // DUMP_STACK(L, "lua_getfield(calc)");
 
     ///// Push the arguments to the call.
     lua_pushnumber(L, x);
     lua_pushnumber(L, y);
 
-    ///// Use lua_pcall to do the actual call. TODO or int lua_pcallk (); This function behaves exactly like lua_pcall, but allows the called function to yield.
+    ///// Do the actual call.
     lstat = lua_pcall(L, 2, 1, 0);
-    // lstat = lua_resume(L, L, 2);
-    
+
     if(lstat >= LUA_ERRRUN)
     {
-        lu_LuaError(L, lstat, __LINE__, "lua_pcall calc() failed");
+        PROCESS_LUA_ERROR(L, lstat, "lua_pcall calc() failed");
     }
 
     ///// Get the results from the stack.
     p_GetArgDbl(L, -1, res);
-    // lua_pop(L, 1);  // pop returned value
 }
 
 //--------------------------------------------------------//
@@ -108,7 +106,7 @@ void iop_Hinput(lua_State* L, unsigned int pin, bool value)
     lstat = lua_getglobal(L, "hinput");
     if(lstat >= LUA_ERRRUN)
     {
-        lu_LuaError(L, lstat, __LINE__, "lua_getglobal hinput() failed");
+        PROCESS_LUA_ERROR(L, lstat, "lua_getglobal hinput() failed");
     }
 
     ///// Push the arguments to the call.
@@ -119,7 +117,7 @@ void iop_Hinput(lua_State* L, unsigned int pin, bool value)
     lstat = lua_pcall(L, 2, 1, 0);
     if(lstat >= LUA_ERRRUN)
     {
-        lu_LuaError(L, lstat, __LINE__, "Call hinput() failed");
+        PROCESS_LUA_ERROR(L, lstat, "Call hinput() failed");
     }
 
     /////
@@ -129,9 +127,7 @@ void iop_Hinput(lua_State* L, unsigned int pin, bool value)
 //--------------------------------------------------------//
 void iop_Preload(lua_State* L)
 {
-    //lu_DumpStack(L, "before luaL_requiref()", __LINE__);
     luaL_requiref(L, "luainterop", p_OpenLuainterop, 1);
-    //lu_DumpStack(L, "after luaL_requiref()", __LINE__);
 }
 
 
@@ -146,7 +142,7 @@ int p_GetArgInt(lua_State* L, int index, int* ret) // TODO these? lua_Integer lu
     }
     else
     {
-        lu_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid integer argument at index %d", index);
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid integer argument at index %d", index);
     }
 
     return RS_PASS;
@@ -161,7 +157,7 @@ int p_GetArgDbl(lua_State* L, int index, double* ret)
     }
     else
     {
-        lu_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid double argument at index %d", index);
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid double argument at index %d", index);
     }
 
     return RS_PASS;
@@ -176,7 +172,7 @@ int p_GetArgBool(lua_State* L, int index, bool* ret)
     }
     else
     {
-        lu_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid bool argument at index %d", index);
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid bool argument at index %d", index);
     }
 
     return RS_PASS;
@@ -191,7 +187,7 @@ int p_GetArgStr(lua_State* L, int index, const char** ret)
     }
     else
     {
-        lu_LuaError(L, IOP_INVALID_TYPE, __LINE__, "Invalid string argument at index %d", index);
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid string argument at index %d", index);
     }
 
     return RS_PASS;
@@ -262,7 +258,7 @@ int p_DigIn(lua_State* L)
 /// Map lua functions to C functions.
 static const luaL_Reg luainteroplib[] =
 {
-//  { lua func, c func }
+    //lua func, c func
     { "cliwr",  p_CliWr },      // say something to user
     { "msec",   p_Msec },       // get current time
     { "digout", p_DigOut },     // write output pin
@@ -274,24 +270,7 @@ static const luaL_Reg luainteroplib[] =
 int p_OpenLuainterop (lua_State *L)
 {
     // Register our C <-> Lua functions.
-    //lu_DumpStack(L, "===p_OpenLuainterop()", __LINE__);
     luaL_newlib(L, luainteroplib);
-    //lu_DumpStack(L, "===luaL_newlib()", __LINE__);
-    //lua_setglobal(L, "luainterop");
-    //lu_DumpStack(L, "===lua_setglobal()");
-
-
-// Probably, you should add lua_setglobal(L, "mylib"); just after luaL_newlib() and call your function using its full name mylib.mysin(2)
-
-// luaL_newlib creates a new table and populates it from a list of functions. Your function mysin is inside this table and is not a global function.
-// If you want it to be a global function, use lua_register.
-
-
-// void luaL_newlib (lua_State *L, const luaL_Reg l[]);
-// Creates a new table and registers there the functions in list l.
-// It is implemented as the following macro:
-//      (luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
-
 
     return 1;
 }

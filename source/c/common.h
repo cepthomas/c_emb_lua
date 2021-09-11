@@ -52,11 +52,11 @@ static const int RS_ERR = -1;
 /// Defines failure (expected, end of iteration, etc) for a function that returns int status.
 static const int RS_FAIL = -2;
 
-/// Defines normal exit status.
-static const int RS_EXIT = -3;
-
 
 //---------------- Public Functions ----------------------//
+
+/// Current time.
+double common_CurrentSec();
 
 
 #endif // COMMON_H
