@@ -111,31 +111,23 @@ int exec_Run(const char* fn)
 
     // Set up a second Lua thread so we can background execute the script.
     p_lscript = lua_newthread(p_lmain);
-    // LOG_DEBUG("p_lmain:%p", p_lmain);
-    // LOG_DEBUG("p_lscript:%p", p_lscript);
-    // DUMP_STACK(p_lscript, "lua_newthread() - stack:empty");
 
     // Open std libs.
     luaL_openlibs(p_lscript);
-    // DUMP_STACK(p_lscript, "luaL_openlibs()");
 
     // Load app stuff. This table gets pushed on the stack and into globals.
     iop_Preload(p_lscript);
-    // DUMP_STACK(p_lscript, "iop_Preload()");
 
     // Pop the table off the stack as it interferes with calling the module function.
     lua_pop(p_lscript, 1);
-    // DUMP_STACK(p_lscript, "lua_pop()");
 
     // Now load the script/file we are going to run.
     // lua_load() pushes the compiled chunk as a Lua function on top of the stack.
     lua_stat = luaL_loadfile(p_lscript, fn);
-    // DUMP_STACK(p_lscript, "luaL_loadfile()");
 
     // Give it data. 
     my_data_t md = { 12.789, 90909, IN_PROCESS, "Hey diddle diddle" };
     iop_SetGlobalMyData(p_lscript, &md, "my_static_data"); // TODO pass as arg instead.
-    // DUMP_STACK(p_lscript, "iop_SetGlobalMyData()");
 
     // Priming run of the loaded Lua script to create the script's global variables
     lua_stat = lua_pcall(p_lscript, 0, 0, 0);
@@ -150,10 +142,6 @@ int exec_Run(const char* fn)
         p_script_running = true;
 
         int gtype = lua_getglobal(p_lscript, "do_it");
-        if(gtype == LUA_TNONE)
-        {
-           // PROCESS_LUA_ERROR(L, lstat, "get do_it failed");
-        }
 
         do
         {
@@ -178,8 +166,6 @@ int exec_Run(const char* fn)
             p_Sleep(200);
         }
         while (lua_stat == LUA_YIELD);
-
-p_ProcessCommand("f 5 t");
 
         do
         {

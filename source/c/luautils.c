@@ -143,6 +143,21 @@ int lu_DumpGlobals(lua_State* L)
 }
 
 //--------------------------------------------------------//
+int lu_GetArgStr(lua_State* L, int index, const char** ret)
+{
+    if(lua_isstring(L, index) > 0)
+    {
+        *ret = lua_tostring(L, index);
+    }
+    else
+    {
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid string argument at index %d", index);
+    }
+
+    return RS_PASS;
+}
+
+//--------------------------------------------------------//
 int lu_GetArgInt(lua_State* L, int index, int* ret)
 {
     int valid = 0;

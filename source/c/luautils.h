@@ -60,10 +60,10 @@ int lu_GetArgBool(lua_State* L, int index, bool* ret);
 int lu_GetArgStr(lua_State* L, int index, const char** ret);
 
 
-/// Helper macro.
+/// Helper macro to dump stack.
 #define DUMP_STACK(l, info)  lu_DumpStack(l, __FILE__, __LINE__, info);
 
-/// Helper macro.
-#define PROCESS_LUA_ERROR(l, err, fmt, ...)  lu_LuaError(l, __FILE__, __LINE__, err, fmt, ##__VA_ARGS__);
+/// Helper macro to check then handle error..
+#define PROCESS_LUA_ERROR(l, err, fmt, ...)  if(err >= LUA_ERRRUN) { lu_LuaError(l, __FILE__, __LINE__, err, fmt, ##__VA_ARGS__); }
 
 #endif // LUAUTILS_H

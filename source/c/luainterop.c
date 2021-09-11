@@ -51,10 +51,6 @@ void iop_Calc(lua_State* L, double x, double y, double* res)
     
     ///// Get the function to be called.
     int gtype = lua_getglobal(L, "calc");
-    if(gtype == LUA_TNONE)
-    {
-        PROCESS_LUA_ERROR(L, lstat, "get calc failed");
-    }
 
     ///// Push the arguments to the call.
     lua_pushnumber(L, x);
@@ -63,10 +59,7 @@ void iop_Calc(lua_State* L, double x, double y, double* res)
     ///// Do the actual call.
     lstat = lua_pcall(L, 2, 1, 0);
 
-    if(lstat >= LUA_ERRRUN)
-    {
-        PROCESS_LUA_ERROR(L, lstat, "lua_pcall calc() failed");
-    }
+    PROCESS_LUA_ERROR(L, lstat, "lua_pcall calc() failed");
 
     ///// Get the results from the stack.
     lu_GetArgDbl(L, -1, res);
@@ -79,10 +72,6 @@ void iop_Hinput(lua_State* L, unsigned int pin, bool value)
 
     ///// Get the function to be called.
     int gtype = lua_getglobal(L, "hinput");
-    if(gtype == LUA_TNONE)
-    {
-        PROCESS_LUA_ERROR(L, lstat, "get hinput failed");
-    }
 
     ///// Push the arguments to the call.
     lua_pushinteger(L, pin);
@@ -90,10 +79,8 @@ void iop_Hinput(lua_State* L, unsigned int pin, bool value)
 
     ///// Use lua_pcall to do the actual call.
     lstat = lua_pcall(L, 2, 0, 0);
-    if(lstat >= LUA_ERRRUN)
-    {
-        PROCESS_LUA_ERROR(L, lstat, "Call hinput() failed");
-    }
+
+    PROCESS_LUA_ERROR(L, lstat, "Call hinput() failed");
 
     /////
     // no return value
@@ -108,21 +95,6 @@ void iop_Preload(lua_State* L)
 
 //---------------- Private Implementation -------------//
 
-
-//--------------------------------------------------------//
-int lu_GetArgStr(lua_State* L, int index, const char** ret)
-{
-    if(lua_isstring(L, index) > 0)
-    {
-        *ret = lua_tostring(L, index); //returns NULL if ng
-    }
-    else
-    {
-        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid string argument at index %d", index);
-    }
-
-    return RS_PASS;
-}
 
 //--------------------------------------------------------//
 int p_CliWr(lua_State* L)
