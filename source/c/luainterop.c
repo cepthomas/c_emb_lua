@@ -11,34 +11,10 @@
 
 //---------------- Private Declarations ---------------------//
 
-/// Utility to get an int arg off the Lua stack.
-/// @param L Lua state.
-/// @param index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-int p_GetArgInt(lua_State* L, int index, int* ret);
-
-/// Utility to get a double arg off the Lua stack.
-/// @param L Lua state.
-/// @param index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-int p_GetArgDbl(lua_State* L, int index, double* ret);
-
-/// Utility to get a boolean arg off the Lua stack.
-/// @param L Lua state.
-/// @param index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-int p_GetArgBool(lua_State* L, int index, bool* ret);
-
-/// Utility to get a string arg off the Lua stack.
-/// @param L Lua state.
-/// @param index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-int p_GetArgStr(lua_State* L, int index, const char** ret);
-
 /// Called by system to actually load the lib.
 /// @param L Lua state.
 /// @return Status = 1 if ok.
-int p_OpenLuainterop (lua_State *L);
+int p_OpenLuainterop (lua_State* L);
 
 
 //---------------- Public Implementation -------------//
@@ -94,7 +70,7 @@ void iop_Calc(lua_State* L, double x, double y, double* res)
     }
 
     ///// Get the results from the stack.
-    p_GetArgDbl(L, -1, res);
+    lu_GetArgDbl(L, -1, res);
 }
 
 //--------------------------------------------------------//
@@ -133,53 +109,9 @@ void iop_Preload(lua_State* L)
 
 //---------------- Private Implementation -------------//
 
-//--------------------------------------------------------//
-int p_GetArgInt(lua_State* L, int index, int* ret) // TODO these? lua_Integer luaL_checkinteger (lua_State *L, int arg);  void luaL_checktype (lua_State *L, int arg, int t);
-{
-    if(lua_isnumber(L, index) > 0)
-    {
-        *ret = (int)lua_tointeger(L, index);
-    }
-    else
-    {
-        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid integer argument at index %d", index);
-    }
-
-    return RS_PASS;
-}
 
 //--------------------------------------------------------//
-int p_GetArgDbl(lua_State* L, int index, double* ret)
-{
-    if(lua_isnumber(L, index) > 0)
-    {
-        *ret = lua_tonumber(L, index);
-    }
-    else
-    {
-        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid double argument at index %d", index);
-    }
-
-    return RS_PASS;
-}
-
-//--------------------------------------------------------//
-int p_GetArgBool(lua_State* L, int index, bool* ret)
-{
-    if(lua_isboolean(L, index) > 0)
-    {
-        *ret = lua_toboolean(L, index); // always t/f
-    }
-    else
-    {
-        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid bool argument at index %d", index);
-    }
-
-    return RS_PASS;
-}
-
-//--------------------------------------------------------//
-int p_GetArgStr(lua_State* L, int index, const char** ret)
+int lu_GetArgStr(lua_State* L, int index, const char** ret)
 {
     if(lua_isstring(L, index) > 0)
     {
@@ -198,7 +130,7 @@ int p_CliWr(lua_State* L)
 {
     ///// Get function arguments.
     const char* info = NULL;
-    p_GetArgStr(L, 1, &info);
+    lu_GetArgStr(L, 1, &info);
 
     ///// Do the work.
    board_CliWriteLine(info);
@@ -227,8 +159,8 @@ int p_DigOut(lua_State* L)
     ///// Get function arguments.
     int pin;
     bool state;
-    p_GetArgInt(L, 1, &pin);
-    p_GetArgBool(L, 2, &state);
+    lu_GetArgInt(L, 1, &pin);
+    lu_GetArgBool(L, 2, &state);
 
     ///// Do the work.
     board_WriteDig((unsigned int)pin, state);
@@ -242,7 +174,7 @@ int p_DigIn(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
-    p_GetArgInt(L, 1, &pin);
+    lu_GetArgInt(L, 1, &pin);
 
     ///// Do the work.
     bool state;
@@ -252,7 +184,6 @@ int p_DigIn(lua_State* L)
     lua_pushboolean(L, state);
     return 1; // number of results
 }
-
 
 //--------------------------------------------------------//
 /// Map lua functions to C functions.
@@ -267,7 +198,7 @@ static const luaL_Reg luainteroplib[] =
 };
 
 //--------------------------------------------------------//
-int p_OpenLuainterop (lua_State *L)
+int p_OpenLuainterop (lua_State* L)
 {
     // Register our C <-> Lua functions.
     luaL_newlib(L, luainteroplib);

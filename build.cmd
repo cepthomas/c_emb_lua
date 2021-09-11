@@ -14,7 +14,7 @@ cmake -G "MinGW Makefiles" ..
 make
 cd ..
 
-rem TODO This really should be done by CMake but it's kind of a pain.
+rem This really should be done by CMake but it's kind of a pain.
 copy source\lua\*.lua build
 
 rem pause

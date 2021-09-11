@@ -55,8 +55,6 @@ static const int RS_FAIL = -2;
 
 //---------------- Public Functions ----------------------//
 
-/// Current time.
-double common_CurrentSec();
 
 
 #endif // COMMON_H

@@ -152,7 +152,7 @@ LUALIB_API void luaL_traceback_original (lua_State *L, lua_State *L1,
   lua_concat(L, lua_gettop(L) - top);
 }
 
-//TODO custom version from https://luyuhuang.tech/2020/12/01/lua-traceback-with-parameters.html
+//C_EMB_LUA custom version from https://luyuhuang.tech/2020/12/01/lua-traceback-with-parameters.html
 LUALIB_API void luaL_traceback(lua_State *L, lua_State *L1, const char *msg, int level)
 {
   lua_Debug ar;

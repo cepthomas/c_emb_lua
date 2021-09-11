@@ -179,6 +179,8 @@ int exec_Run(const char* fn)
         }
         while (lua_stat == LUA_YIELD);
 
+p_ProcessCommand("w 5 t");
+
         do
         {
             ///// Check cli. /////

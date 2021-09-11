@@ -12,9 +12,8 @@
 
 //---------------- Public Implementation -----------------//
 
-
 //--------------------------------------------------------//
-int lu_DumpStack(lua_State *L, const char* fn, int line, const char* info)
+int lu_DumpStack(lua_State* L, const char* fn, int line, const char* info)
 {
     static char buff[BUFF_LEN];
 
@@ -143,5 +142,51 @@ int lu_DumpGlobals(lua_State* L)
     return RS_PASS;
 }
 
+//--------------------------------------------------------//
+int lu_GetArgInt(lua_State* L, int index, int* ret)
+{
+    int valid = 0;
+    if(lua_isnumber(L, index) > 0)
+    {
+        *ret = (int)lua_tointegerx(L, index, &valid);
+    }
+
+    if(valid == 0)
+    {
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid integer argument at index %d", index);
+    }
+
+    return RS_PASS;
+}
+
+//--------------------------------------------------------//
+int lu_GetArgDbl(lua_State* L, int index, double* ret)
+{
+    if(lua_isnumber(L, index) > 0)
+    {
+        *ret = lua_tonumber(L, index);
+    }
+    else
+    {
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid double argument at index %d", index);
+    }
+
+    return RS_PASS;
+}
+
+//--------------------------------------------------------//
+int lu_GetArgBool(lua_State* L, int index, bool* ret)
+{
+    if(lua_isboolean(L, index) > 0)
+    {
+        *ret = lua_toboolean(L, index); // always t/f
+    }
+    else
+    {
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid bool argument at index %d", index);
+    }
+
+    return RS_PASS;
+}
 
 //---------------- Private Implementation -------------//

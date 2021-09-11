@@ -4,7 +4,7 @@
 
 #include "common.h"
 
-/// @brief Interface to the hardware board. This has simulated digital IO, timer, CLI.
+/// @brief Interface to the hardware board. This has simulated digital IO, timer, crude CLI.
 
 //---------------- Public API ----------------------//
 

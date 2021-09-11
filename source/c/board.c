@@ -69,7 +69,7 @@ int board_RegDigInterrupt(board_DigInterrupt_t fp)
 }
 
 //--------------------------------------------------------//
-uint64_t board_GetCurrentUsec(void) //TODO test this
+uint64_t board_GetCurrentUsec(void)
 {
     struct timeval tv;
     struct timezone tz;
@@ -178,7 +178,7 @@ int board_CliWriteLine(const char* format, ...)
     vsnprintf(buff, CLI_BUFF_LEN-1, format, args);
     va_end(args);
 
-    // Add a prompt. TODO fix
+    // Add a prompt.
     printf("%s\r\n>", buff);
 
     return stat;    

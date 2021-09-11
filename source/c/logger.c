@@ -18,6 +18,8 @@ double p_start_sec;
 
 #define LOG_LINE_LEN 100
 
+/// Current time.
+double p_CurrentSec();
 
 //---------------- Public API Implementation -------------//
 
@@ -26,7 +28,7 @@ int logger_Init(const char* fn)
 {
     p_fp = fopen(fn, "w"); // or "a"
     VAL_PTR(p_fp, RS_ERR);
-    p_start_sec = common_CurrentSec();
+    p_start_sec = p_CurrentSec();
 
     // Banner.
     time_t now = time(NULL);
@@ -74,7 +76,7 @@ int logger_Log(log_level_t level, const char* fn, int line, const char* format, 
             case LVL_ERROR: slevel = "ERR"; break;
         }
 
-        fprintf(p_fp, "%03.6f,%s,%s(%d),%s\n", common_CurrentSec() - p_start_sec, slevel, pfn, line, buff);
+        fprintf(p_fp, "%03.6f,%s,%s(%d),%s\n", p_CurrentSec() - p_start_sec, slevel, pfn, line, buff);
         fflush(p_fp);
     }
 
@@ -84,3 +86,11 @@ int logger_Log(log_level_t level, const char* fn, int line, const char* format, 
 
 //---------------- Private Implementation --------------------------//
 
+double p_CurrentSec()
+{
+    struct timeval tv;
+    struct timezone tz;
+    gettimeofday(&tv, &tz);
+    double sec = (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
+    return sec;
+}

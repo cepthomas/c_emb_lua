@@ -35,6 +35,31 @@ int lu_DumpTable(lua_State* L, const char* name);
 /// @param L Lua state.
 int lu_DumpGlobals(lua_State* L);
 
+/// Utility to get an int arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+int lu_GetArgInt(lua_State* L, int index, int* ret);
+
+/// Utility to get a double arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+int lu_GetArgDbl(lua_State* L, int index, double* ret);
+
+/// Utility to get a boolean arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+int lu_GetArgBool(lua_State* L, int index, bool* ret);
+
+/// Utility to get a string arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+int lu_GetArgStr(lua_State* L, int index, const char** ret);
+
+
 /// Helper macro.
 #define DUMP_STACK(l, info)  lu_DumpStack(l, __FILE__, __LINE__, info);
 
