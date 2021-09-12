@@ -18,6 +18,7 @@ typedef enum
     LVL_ERROR = 2
 } log_level_t;
 
+
 /// Initialize the module.
 /// @param fn File to write to.
 /// @return Status.

@@ -5,6 +5,7 @@ It demonstrates:
 - Calling script functions with args from the C side.
 - Calling C functions with args from the script side.
 - Simulated embedded system with a hardware level, CLI for control, and exec loop running everything.
+- Rudimentary error handling model - more required.
 
 # Build
 - Pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.

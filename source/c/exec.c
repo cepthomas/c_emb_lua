@@ -7,7 +7,7 @@
 
 #include "common.h"
 #include "board.h"
-#include "luainterop.h"
+#include "interop.h"
 #include "luautils.h"
 #include "logger.h"
 #include "exec.h"
@@ -49,18 +49,6 @@ static int p_ProcessCommand(const char* sin);
 /// @brief Print usage.
 static void p_Usage(void);
 
-/// Safe convert a string to double.
-/// @param str The input.
-/// @param val The output.
-/// @return Valid conversion.
-static bool p_StrToDouble(const char* str, double* val);
-
-/// Safe convert a string to integer.
-/// @param str The input.
-/// @param val The output.
-/// @return Valid conversion.
-static bool p_StrToInt(const char* str, int* val);
-
 /// Sleep for msec.
 /// @param msec How long.
 static void p_Sleep(int msec);
@@ -74,7 +62,7 @@ int exec_Init(void)
     int stat = RS_PASS;
 
     // Init stuff.
-    logger_Init("C:\\Dev\\repos\\c_emb_lua\\_log.txt"); //TODO config
+    logger_Init(".\\cel_log.txt");
     logger_SetFilters(LVL_DEBUG);
     p_loop_running = false;
     p_lmain = luaL_newstate();
@@ -116,7 +104,7 @@ int exec_Run(const char* fn)
     luaL_openlibs(p_lscript);
 
     // Load app stuff. This table gets pushed on the stack and into globals.
-    iop_Preload(p_lscript);
+    interop_Preload(p_lscript);
 
     // Pop the table off the stack as it interferes with calling the module function.
     lua_pop(p_lscript, 1);
@@ -125,9 +113,11 @@ int exec_Run(const char* fn)
     // lua_load() pushes the compiled chunk as a Lua function on top of the stack.
     lua_stat = luaL_loadfile(p_lscript, fn);
 
-    // Give it data. 
-    my_data_t md = { 12.789, 90909, IN_PROCESS, "Hey diddle diddle" };
-    iop_SetGlobalMyData(p_lscript, &md, "my_static_data"); // TODO pass as arg instead.
+    // Give it some data. 
+    lua_pushstring(p_lscript, "Hey diddle diddle");
+    lua_setglobal(p_lscript, "script_string");
+    lua_pushinteger(p_lscript, 90309);
+    lua_setglobal(p_lscript, "script_int");
 
     // Priming run of the loaded Lua script to create the script's global variables
     lua_stat = lua_pcall(p_lscript, 0, 0, 0);
@@ -143,6 +133,7 @@ int exec_Run(const char* fn)
 
         int gtype = lua_getglobal(p_lscript, "do_it");
 
+        ///// First do some yelding. /////
         do
         {
             lua_stat = lua_resume(p_lscript, 0, 0);
@@ -167,9 +158,9 @@ int exec_Run(const char* fn)
         }
         while (lua_stat == LUA_YIELD);
 
+        ///// Then loop forever doing cli requests. /////
         do
         {
-            ///// Check cli. /////
             stat = board_CliReadLine(p_cli_buf, CLI_BUFF_LEN);
             if(stat == RS_PASS && strlen(p_cli_buf) > 0)
             {
@@ -179,7 +170,7 @@ int exec_Run(const char* fn)
             p_Sleep(100);
         } while (p_script_running);
 
-        // Script complete now.
+        ///// Script complete now. /////
         board_CliWriteLine("Finished script.");
     }
     else
@@ -187,11 +178,9 @@ int exec_Run(const char* fn)
         PROCESS_LUA_ERROR(p_lscript, lua_stat, "exec_Run() error");
     }
 
-    // Done, close up shop.
+    ///// Done, close up shop. /////
     board_CliWriteLine("Goodbye - come back soon!");
     board_EnableInterrupts(false);
-
-    // lua_close(p_lscript);
     lua_close(p_lmain);
 
     return stat == RS_ERR ? 1 : RS_PASS;
@@ -202,7 +191,7 @@ int exec_Run(const char* fn)
 //---------------------------------------------------//
 void p_DigInputHandler(unsigned int which, bool value)
 {
-    iop_Hinput(p_lscript, which, value);
+    interop_Hinput(p_lscript, which, value);
 }
 
 //---------------------------------------------------//
@@ -210,7 +199,7 @@ int p_ProcessCommand(const char* sin)
 {
     int stat = RS_PASS;
 
-    // What are the options.
+    // What are the command line options. First one should be the actual command.
     char* opts[MAX_NUM_OPTS];
     memset(opts, 0x00, sizeof(opts));
     int oind = 0;
@@ -242,9 +231,9 @@ int p_ProcessCommand(const char* sin)
                     double x = -1;
                     double y = -1;
                     double res = -1;
-                    if(p_StrToDouble(opts[1], &x) && p_StrToDouble(opts[2], &y))
+                    if(common_StrToDouble(opts[1], &x) && common_StrToDouble(opts[2], &y))
                     {
-                        iop_Calc(p_lscript, x, y, &res);
+                        interop_Calc(p_lscript, x, y, &res);
                         board_CliWriteLine("%g + %g = %g", x, y, res);
                         valid = true;
                     }
@@ -256,10 +245,10 @@ int p_ProcessCommand(const char* sin)
                 {
                     int pin = -1;
 
-                    if(p_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
+                    if(common_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
                     {
                         bool value = opts[2][0] == 't';
-                        iop_Hinput(p_lscript, pin, value);
+                        interop_Hinput(p_lscript, pin, value);
                         valid = true;
                     }
                 }
@@ -270,7 +259,7 @@ int p_ProcessCommand(const char* sin)
                 {
                     int pin = -1;
                     bool bval;
-                    if(p_StrToInt(opts[1], &pin))
+                    if(common_StrToInt(opts[1], &pin))
                     {
                         board_ReadDig((unsigned int)pin, &bval);
                         board_CliWriteLine("read pin:%d = %s", pin, bval ? "t" : "f");
@@ -284,12 +273,46 @@ int p_ProcessCommand(const char* sin)
                 {
                     int pin = -1;
 
-                    if(p_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
+                    if(common_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
                     {
                         bool value = opts[2][0] == 't';
                         board_WriteDig((unsigned int)pin, value);
                         valid = true;
                     }
+                }
+                break;
+
+
+            case 's':
+                if(oind == 1)
+                {
+                    // Populate input to script function.
+                    my_data_t din;
+                    din.state = ST_IN_PROCESS;
+                    din.val = 50505;
+                    din.text = malloc(20);
+                    sprintf(din.text, "I am a test string");
+
+                    // Prep output from script function.
+                    my_data_t dout;
+
+                    // Make call.
+                    interop_Structinator(p_lscript, &din, &dout);
+
+                    // Do something with dout.
+                    const char* state_name = "???";
+                    switch(dout.state)
+                    {
+                        case ST_READY: state_name = "ST_READY"; break;
+                        case ST_IN_PROCESS: state_name = "ST_IN_PROCESS"; break;
+                        case ST_DONE: state_name = "ST_DONE"; break;
+                    }
+                    board_CliWriteLine("interop_Structinator rcv: val:%d state:%s text:%s", dout.val, state_name, dout.text);
+
+                    // Clean up.
+                    free(din.text);
+                    free(dout.text);
+                    valid = true;
                 }
                 break;
         }
@@ -298,7 +321,7 @@ int p_ProcessCommand(const char* sin)
     if(!valid)
     {
         // usage
-        board_CliWriteLine("Invalid cmd:%s: ", sin);
+        board_CliWriteLine("Invalid cmd:%s ", sin);
         p_Usage();
         stat = RS_FAIL;
     }
@@ -315,51 +338,9 @@ void p_Usage(void)
     board_CliWriteLine("  tell script about a (fake) input pin change: f pin t/f");
     board_CliWriteLine("  direct C read io pin: r pin");
     board_CliWriteLine("  direct C write io pin: w pin t/f");
+    board_CliWriteLine("  write/read C struct to/from Lua: s");
 }
 
-//--------------------------------------------------------//
-bool p_StrToDouble(const char* str, double* val)
-{
-    bool valid = true;
-    char* p;
-
-    errno = 0;
-    *val = strtof(str, &p);
-    if(errno == ERANGE)
-    {
-        // Mag is too large.
-        valid = false;
-    }
-    else if(p == str)
-    {
-        // Bad string.
-        valid = false;
-    }
-
-    return valid;
-}
-
-//--------------------------------------------------------//
-bool p_StrToInt(const char* str, int* val)
-{
-    bool valid = true;
-    char* p;
-
-    errno = 0;
-    *val = strtol(str, &p, 10);
-    if(errno == ERANGE)
-    {
-        // Mag is too large.
-        valid = false;
-    }
-    else if(p == str)
-    {
-        // Bad string.
-        valid = false;
-    }
-
-    return valid;
-}
 
 //--------------------------------------------------------//
 void p_Sleep(int msec)

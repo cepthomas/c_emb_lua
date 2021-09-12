@@ -2,8 +2,6 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-/// @brief General defs.
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -12,25 +10,8 @@
 #include <errno.h>
 #include <math.h>
 
+
 //---------------- Public Types ----------------------//
-
-/// Demo enum.
-typedef enum
-{
-    READY = 1,      ///> Ready to be scheduled
-    IN_PROCESS = 2, ///> Scheduled or running
-    DONE = 3        ///> All done
-} state_type_t;
-
-
-/// Demo struct.
-typedef struct
-{
-    double f1;          ///> A value
-    int f2;             ///> Another value
-    state_type_t state; ///> Another value
-    const char* f3;     ///> Yet another
-} my_data_t;
 
 
 //---------------- Public Consts ----------------------//
@@ -55,6 +36,17 @@ static const int RS_FAIL = -2;
 
 //---------------- Public Functions ----------------------//
 
+/// Safe convert a string to double.
+/// @param str The input.
+/// @param val The output.
+/// @return Valid conversion.
+bool common_StrToDouble(const char* str, double* val);
+
+/// Safe convert a string to integer.
+/// @param str The input.
+/// @param val The output.
+/// @return Valid conversion.
+bool common_StrToInt(const char* str, int* val);
 
 
 #endif // COMMON_H

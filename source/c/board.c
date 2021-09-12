@@ -145,11 +145,14 @@ int board_CliReadLine(char* buff, unsigned int num)
             case '\r':
                 // Echo return.
                 board_CliWriteLine("");
+
                 // Copy to client buff. Should be 0 terminated.
                 strncpy(buff, p_cli_buff, num);
                 stat = RS_PASS;
+
                 // Clear buffer.
                 memset(p_cli_buff, 0, CLI_BUFF_LEN);
+
                 // Echo prompt.
                 board_CliWriteLine("");
                 break;
@@ -157,6 +160,7 @@ int board_CliReadLine(char* buff, unsigned int num)
             default:
                 // Echo char.
                 putchar(c);
+                
                 // Save it.
                 p_cli_buff[strlen(p_cli_buff)] = c;
                 break;

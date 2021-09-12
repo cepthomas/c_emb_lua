@@ -13,7 +13,7 @@
 //---------------- Public Implementation -----------------//
 
 //--------------------------------------------------------//
-int lu_DumpStack(lua_State* L, const char* fn, int line, const char* info)
+int luautils_DumpStack(lua_State* L, const char* fn, int line, const char* info)
 {
     static char buff[BUFF_LEN];
 
@@ -59,7 +59,7 @@ int lu_DumpStack(lua_State* L, const char* fn, int line, const char* info)
 }
 
 //--------------------------------------------------------//
-void lu_LuaError(lua_State* L, const char* fn, int line, int err, const char* format, ...)
+void luautils_LuaError(lua_State* L, const char* fn, int line, int err, const char* format, ...)
 {
     static char buff[BUFF_LEN];
 
@@ -103,7 +103,7 @@ void lu_LuaError(lua_State* L, const char* fn, int line, int err, const char* fo
 }
 
 //--------------------------------------------------------//
-int lu_DumpTable(lua_State* L, const char* name)
+int luautils_DumpTable(lua_State* L, const char* name)
 {
     logger_Log(LVL_DEBUG, name, -1, name);
 
@@ -119,7 +119,7 @@ int lu_DumpTable(lua_State* L, const char* name)
         // Get type of value(-1).
         const char* type = luaL_typename(L, -1);
 
-        logger_Log(LVL_DEBUG, "globals", -1, "   %s=%s", name, type);
+        logger_Log(LVL_DEBUG, name, -1, "   %s=%s", name, type);
 
         // Remove value(-1), now key on top at(-1).
         lua_pop(L, 1);
@@ -129,12 +129,12 @@ int lu_DumpTable(lua_State* L, const char* name)
 }
 
 //--------------------------------------------------------//
-int lu_DumpGlobals(lua_State* L)
+int luautils_DumpGlobals(lua_State* L)
 {
     // Get global table.
     lua_pushglobaltable(L);
 
-    lu_DumpTable(L, "GLOBALS");
+    luautils_DumpTable(L, "GLOBALS");
 
     // Remove global table(-1).
     lua_pop(L,1);
@@ -143,11 +143,14 @@ int lu_DumpGlobals(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int lu_GetArgStr(lua_State* L, int index, const char** ret)
+int luautils_GetArgStr(lua_State* L, int index, char** ret)
 {
     if(lua_isstring(L, index) > 0)
     {
-        *ret = lua_tostring(L, index);
+        // Need to copy the string because the lua one will be GCed.
+        const char* st = lua_tostring(L, index);
+        *ret = calloc(strlen(st) + 1, 1);
+        strcpy(*ret, st);
     }
     else
     {
@@ -158,7 +161,7 @@ int lu_GetArgStr(lua_State* L, int index, const char** ret)
 }
 
 //--------------------------------------------------------//
-int lu_GetArgInt(lua_State* L, int index, int* ret)
+int luautils_GetArgInt(lua_State* L, int index, int* ret)
 {
     int valid = 0;
     if(lua_isnumber(L, index) > 0)
@@ -175,7 +178,7 @@ int lu_GetArgInt(lua_State* L, int index, int* ret)
 }
 
 //--------------------------------------------------------//
-int lu_GetArgDbl(lua_State* L, int index, double* ret)
+int luautils_GetArgDbl(lua_State* L, int index, double* ret)
 {
     if(lua_isnumber(L, index) > 0)
     {
@@ -190,7 +193,7 @@ int lu_GetArgDbl(lua_State* L, int index, double* ret)
 }
 
 //--------------------------------------------------------//
-int lu_GetArgBool(lua_State* L, int index, bool* ret)
+int luautils_GetArgBool(lua_State* L, int index, bool* ret)
 {
     if(lua_isboolean(L, index) > 0)
     {

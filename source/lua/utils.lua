@@ -2,7 +2,7 @@
 Lua utilities.
 --]]
 
-local li = require "luainterop" -- c module
+local li = require "luainterop" -- C module
 
 -- Create the namespace/module.
 local M = {}
