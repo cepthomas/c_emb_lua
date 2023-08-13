@@ -11,11 +11,6 @@
 
 //---------------- Private Declarations ---------------------//
 
-/// Callback from system to actually load the lib.
-/// @param L Lua state.
-/// @return Status = 1 if ok.
-int p_OpenInterop (lua_State* L);
-
 
 //---------------- Public Implementation -----------------//
 //---------------- Call lua functions from C -------------//
@@ -116,16 +111,6 @@ void interop_Structinator(lua_State* L, my_data_t* din, my_data_t* dout)
     lua_pop(L, 1);
 }
 
-//---------------- Public Implementation -----------------//
-//------------------ Infrastructure ----------------------//
-
-//--------------------------------------------------------//
-void interop_Preload(lua_State* L)
-{
-    luaL_requiref(L, "luainterop", p_OpenInterop, 1);
-}
-
-
 //---------------- Private Implementation ----------------//
 //---------------- Call C functions from Lua -------------//
 
@@ -190,7 +175,7 @@ static int p_DigIn(lua_State* L)
 }
 
 
-//---------------- Private Implementation ----------------//
+//---------------- Implementation ------------------------//
 //------------------ Infrastructure ----------------------//
 
 //--------------------------------------------------------//
@@ -206,10 +191,18 @@ static const luaL_Reg function_map[] =
 };
 
 //--------------------------------------------------------//
+// Callback from system to actually load the lib.
 int p_OpenInterop (lua_State* L)
 {
     // Register our C <-> Lua functions.
     luaL_newlib(L, function_map);
 
     return 1;
+}
+
+//--------------------------------------------------------//
+void interop_Load(lua_State* L)
+{
+    // Load app stuff. This table gets pushed on the stack and into globals.
+    luaL_requiref(L, "luainterop", p_OpenInterop, 1);
 }

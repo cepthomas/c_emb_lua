@@ -52,9 +52,9 @@ void interop_Structinator(lua_State* L, my_data_t* din, my_data_t* dout);
 
 //---------------- Call C functions from lua --------------------------//
 
-/// Setup to load the libs.
+/// Setup to load the custom C libs.
 /// @param L Lua environment.
 /// @return Status.
-void interop_Preload(lua_State* L);
+void interop_Load(lua_State* L);
 
 #endif // LUAINTEROP_H

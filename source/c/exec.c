@@ -104,7 +104,7 @@ int exec_Run(const char* fn)
     luaL_openlibs(p_lscript);
 
     // Load app stuff. This table gets pushed on the stack and into globals.
-    interop_Preload(p_lscript);
+    interop_Load(p_lscript);
 
     // Pop the table off the stack as it interferes with calling the module function.
     lua_pop(p_lscript, 1);
