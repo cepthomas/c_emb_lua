@@ -24,12 +24,12 @@ typedef enum
 /// @return Status.
 int logger_Init(const char* fn);
 
-/// Set log levels/cats. the module.
+/// Set log level.
 /// @param level
 /// @return Status.
 int logger_SetFilters(log_level_t level);
 
-/// log some information.
+/// Log some information. Time stamp is seconds after start, not time of day.
 /// @param level See log_level_t.
 /// @param fn Source file.
 /// @param line Source line number.

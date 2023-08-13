@@ -61,9 +61,12 @@ int luautils_GetArgStr(lua_State* L, int index, char** ret);
 
 
 /// Helper macro to dump stack.
-#define DUMP_STACK(l, info)  luautils_DumpStack(l, __FILE__, __LINE__, info);
+#define DUMP_STACK(L, info)  luautils_DumpStack(L, __FILE__, __LINE__, info);
 
 /// Helper macro to check then handle error..
-#define PROCESS_LUA_ERROR(l, err, fmt, ...)  if(err >= LUA_ERRRUN) { luautils_LuaError(l, __FILE__, __LINE__, err, fmt, ##__VA_ARGS__); }
+#define PROCESS_LUA_ERROR(L, err, fmt, ...)  if(err >= LUA_ERRRUN) { luautils_LuaError(L, __FILE__, __LINE__, err, fmt, ##__VA_ARGS__); }
+
+/// Helper macro to check/log stack size.
+#define EVAL_STACK(L, expected)  { int num = lua_gettop(L); if (num != expected) { logger_Log(LVL_DEBUG, __FILE__, __LINE__, "Expected %d stack but is %d", expected, num); } }
 
 #endif // LUAUTILS_H

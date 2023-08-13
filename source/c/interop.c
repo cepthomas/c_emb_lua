@@ -18,7 +18,7 @@
 //--------------------------------------------------------//
 void interop_Calc(lua_State* L, double x, double y, double* res)
 {
-    int lstat = 0;
+    int lstat = LUA_OK;
     
     ///// Get the function to be called.
     int gtype = lua_getglobal(L, "calc");
@@ -39,7 +39,7 @@ void interop_Calc(lua_State* L, double x, double y, double* res)
 //--------------------------------------------------------//
 void interop_Hinput(lua_State* L, unsigned int pin, bool value)
 {
-    int lstat = 0;
+    int lstat = LUA_OK;
 
     ///// Get the function to be called.
     int gtype = lua_getglobal(L, "hinput");
@@ -60,7 +60,7 @@ void interop_Hinput(lua_State* L, unsigned int pin, bool value)
 //--------------------------------------------------------//
 void interop_Structinator(lua_State* L, my_data_t* din, my_data_t* dout)
 {
-    int lstat = 0;
+    int lstat = LUA_OK;
 
     ///// Get the function to be called.
     int gtype = lua_getglobal(L, "structinator");
