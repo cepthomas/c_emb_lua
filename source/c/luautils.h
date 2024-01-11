@@ -59,6 +59,7 @@ int luautils_GetArgBool(lua_State* L, int index, bool* ret);
 /// @param[out] ret The value.
 int luautils_GetArgStr(lua_State* L, int index, char** ret);
 
+void luautils_EvalStack(lua_State* l, int expected);
 
 /// Helper macro to dump stack.
 #define DUMP_STACK(L, info)  luautils_DumpStack(L, __FILE__, __LINE__, info);

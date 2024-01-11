@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "logger.h"
-#include "luautils.h"
+#include "luautils.h" // TODO1 put in cbot.
 
 
 //---------------- Private Declarations ------------------//
@@ -78,9 +78,6 @@ void luautils_LuaError(lua_State* L, const char* fn, int line, int err, const ch
             break;
         case LUA_ERRMEM:
             snprintf(buff, BUFF_LEN-1, "LUA_ERRMEM: memory allocation error");
-            break;
-        case LUA_ERRGCMM:
-            snprintf(buff, BUFF_LEN-1, "LUA_ERRGCMM: GC error");
             break;
         case LUA_ERRERR:
             snprintf(buff, BUFF_LEN-1, "LUA_ERRERR: error while running the error handler function");
@@ -205,6 +202,17 @@ int luautils_GetArgBool(lua_State* L, int index, bool* ret)
     }
 
     return RS_PASS;
+}
+
+
+//--------------------------------------------------------//
+void luautils_EvalStack(lua_State* l, int expected)
+{
+    int num = lua_gettop(l);
+    if (num != expected)
+    {
+        printf("Expected %d stack but is %d", expected, num);
+    }
 }
 
 //---------------- Private Implementation -------------//

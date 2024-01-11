@@ -66,11 +66,11 @@ int exec_Init(void)
     logger_SetFilters(LVL_DEBUG);
     p_loop_running = false;
     p_lmain = luaL_newstate();
-    common_EvalStack(p_lmain, 0);
+    luautils_EvalStack(p_lmain, 0);
 
     // Load std libraries.
     luaL_openlibs(p_lmain);
-    common_EvalStack(p_lmain, 0);
+    luautils_EvalStack(p_lmain, 0);
 
     // Set up all board-specific stuff.
     stat = board_Init();
@@ -83,7 +83,7 @@ int exec_Init(void)
     stat = board_WriteDig(DIG_OUT_3, true);
 
     p_last_usec = board_GetCurrentUsec();
-    common_EvalStack(p_lmain, 0);
+    luautils_EvalStack(p_lmain, 0);
 
     return stat;
 }
@@ -93,7 +93,7 @@ int exec_Run(const char* fn)
 {
     int stat = RS_PASS;
     int lua_stat = 0;
-    common_EvalStack(p_lmain, 0);
+    luautils_EvalStack(p_lmain, 0);
 
     // Let her rip!
     board_EnableInterrupts(true);
@@ -103,20 +103,20 @@ int exec_Run(const char* fn)
 
     // Set up a second Lua thread so we can background execute the script.
     p_lscript = lua_newthread(p_lmain);
-    common_EvalStack(p_lscript, 0);
+    luautils_EvalStack(p_lscript, 0);
     lua_pop(p_lmain, 1); // from lua_newthread()
-    common_EvalStack(p_lmain, 0);
+    luautils_EvalStack(p_lmain, 0);
 
     // Open std libs.
     luaL_openlibs(p_lscript);
 
     // Load app stuff. This table gets pushed on the stack and into globals.
     interop_Load(p_lscript);
-    common_EvalStack(p_lscript, 1);
+    luautils_EvalStack(p_lscript, 1);
 
     // Pop the table off the stack as it interferes with calling the module function.
     lua_pop(p_lscript, 1);
-    common_EvalStack(p_lscript, 0);
+    luautils_EvalStack(p_lscript, 0);
 
     // Now load the script/file we are going to run.
     // lua_load() pushes the compiled chunk as a Lua function on top of the stack.
@@ -127,11 +127,11 @@ int exec_Run(const char* fn)
     lua_setglobal(p_lscript, "script_string");
     lua_pushinteger(p_lscript, 90309);
     lua_setglobal(p_lscript, "script_int");
-    common_EvalStack(p_lscript, 1);
+    luautils_EvalStack(p_lscript, 1);
 
     // Priming run of the loaded Lua script to create the script's global variables
     lua_stat = lua_pcall(p_lscript, 0, 0, 0);
-    common_EvalStack(p_lscript, 0);
+    luautils_EvalStack(p_lscript, 0);
 
     if (lua_stat != LUA_OK)
     {
@@ -144,13 +144,12 @@ int exec_Run(const char* fn)
         p_script_running = true;
 
         int gtype = lua_getglobal(p_lscript, "do_it");
-        common_EvalStack(p_lscript, 1);
+        luautils_EvalStack(p_lscript, 1);
 
         ///// First do some yelding. /////
         do
         {
-            lua_stat = lua_resume(p_lscript, 0, 0);
-
+            lua_stat = lua_resume(p_lscript, p_lmain, 0, 0);
             switch(lua_stat)
             {
                 case LUA_YIELD:
@@ -192,8 +191,8 @@ int exec_Run(const char* fn)
     }
 
     ///// Done, close up shop. /////
-    common_EvalStack(p_lmain, 0);
-    common_EvalStack(p_lscript, 0);
+    luautils_EvalStack(p_lmain, 0);
+    luautils_EvalStack(p_lscript, 0);
 
     board_CliWriteLine("Goodbye - come back soon!");
     board_EnableInterrupts(false);
