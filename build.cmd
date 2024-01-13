@@ -1,6 +1,4 @@
 
-TODO-REF break into separate lib and test dirs
-
 echo off
 
 :: Setup dirs and files.
@@ -16,4 +14,4 @@ make
 popd
 
 :: This really should be done by CMake.
-copy source\lua\*.lua build
+copy test\*.lua build

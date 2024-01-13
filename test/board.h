@@ -73,7 +73,7 @@ int board_CliOpen(unsigned int channel);
 /// Read a line from a cli. This does not block. Buffers chars until EOL.
 /// @param buff Data buffer. Will be a zero-terminated string.
 /// @param num Max length of buff.
-/// @return Status. RS_PASS if buff is valid otherwise RS_FAIL.
+/// @return Status. 0 if buff is valid.
 int board_CliReadLine(char* buff, unsigned int num);
 
 /// Write a line to a cli.

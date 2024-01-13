@@ -39,30 +39,7 @@ int luautils_DumpTable(lua_State* L, const char* name);
 /// @param L Lua state.
 int luautils_DumpGlobals(lua_State* L);
 
-/// Utility to get an int arg off the Lua stack.
-/// @param L Lua state.
-/// @param index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-int luautils_GetArgInt(lua_State* L, int index, int* ret);
-
-/// Utility to get a double arg off the Lua stack.
-/// @param L Lua state.
-/// @param index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-int luautils_GetArgDbl(lua_State* L, int index, double* ret);
-
-/// Utility to get a boolean arg off the Lua stack.
-/// @param L Lua state.
-/// @param index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-int luautils_GetArgBool(lua_State* L, int index, bool* ret);
-
-/// Utility to get a string arg off the Lua stack.
-/// @param L Lua state.
-/// @param index Index of the entry on the Lua stack.
-/// @param[out] ret The value.
-int luautils_GetArgStr(lua_State* L, int index, char** ret);
-
+/// Check stack.
 void luautils_EvalStack(lua_State* l, int expected);
 
 /// Helper macro to dump stack.

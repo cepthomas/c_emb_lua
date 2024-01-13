@@ -12,10 +12,10 @@ int main(int argc, char* argv[])
 
     if(argc == 2)
     {
-        if(exec_Init() == RS_PASS)
+        if(exec_Init() == 0)
         {
             // Blocks forever.
-            if(exec_Run(argv[1]) != RS_PASS)
+            if(exec_Run(argv[1]) != 0)
             {
                 // Bad thing happened.
                 ret = 3;

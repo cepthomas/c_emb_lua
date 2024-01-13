@@ -9,7 +9,6 @@
 #include "board.h"
 #include "interop.h"
 #include "luautils.h"
-#include "logger.h"
 #include "exec.h"
 
 
@@ -53,17 +52,27 @@ static void p_Usage(void);
 /// @param msec How long.
 static void p_Sleep(int msec);
 
+/// Safe convert a string to double.
+/// @param str The input.
+/// @param val The output.
+/// @return Valid conversion.
+static bool p_StrToDouble(const char* str, double* val);
+
+/// Safe convert a string to integer.
+/// @param str The input.
+/// @param val The output.
+/// @return Valid conversion.
+static bool p_StrToInt(const char* str, int* val);
+
 
 //---------------- Public Implementation -------------//
 
 //----------------------------------------------------//
 int exec_Init(void)
 {
-    int stat = RS_PASS;
+    int stat = 0;
 
     // Init stuff.
-    logger_Init(".\\cel_log.txt");
-    logger_SetFilters(LVL_DEBUG);
     p_loop_running = false;
     p_lmain = luaL_newstate();
     luautils_EvalStack(p_lmain, 0);
@@ -91,7 +100,7 @@ int exec_Init(void)
 //---------------------------------------------------//
 int exec_Run(const char* fn)
 {
-    int stat = RS_PASS;
+    int stat = 0;
     int lua_stat = 0;
     luautils_EvalStack(p_lmain, 0);
 
@@ -135,7 +144,7 @@ int exec_Run(const char* fn)
 
     if (lua_stat != LUA_OK)
     {
-        logger_Log(LVL_ERROR, "lua_pcall() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
+        common_Log(LVL_ERROR, "lua_pcall() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
     }
 
     if(lua_stat == LUA_OK)
@@ -153,7 +162,7 @@ int exec_Run(const char* fn)
             switch(lua_stat)
             {
                 case LUA_YIELD:
-                    LOG_DEBUG("===LUA_YIELD.");
+                    common_Log(LVL_DEBUG, "===LUA_YIELD.");
                     break;
 
                 case LUA_OK:
@@ -174,9 +183,8 @@ int exec_Run(const char* fn)
         do
         {
             stat = board_CliReadLine(p_cli_buf, CLI_BUFF_LEN);
-            if(stat == RS_PASS && strlen(p_cli_buf) > 0)
+            if(stat == 0 && strlen(p_cli_buf) > 0)
             {
-                // LOG_DEBUG("|||got:%s", p_cli_buf);
                 stat = p_ProcessCommand(p_cli_buf);
             }
             p_Sleep(100);
@@ -198,7 +206,7 @@ int exec_Run(const char* fn)
     board_EnableInterrupts(false);
     lua_close(p_lmain);
 
-    return stat == RS_ERR ? 1 : RS_PASS;
+    return stat;
 }
 
 //---------------- Private --------------------------//
@@ -212,7 +220,7 @@ void p_DigInputHandler(unsigned int which, bool value)
 //---------------------------------------------------//
 int p_ProcessCommand(const char* sin)
 {
-    int stat = RS_PASS;
+    int stat = 0;
 
     // What are the command line options. First one should be the actual command.
     char* opts[MAX_NUM_OPTS];
@@ -246,7 +254,7 @@ int p_ProcessCommand(const char* sin)
                     double x = -1;
                     double y = -1;
                     double res = -1;
-                    if(common_StrToDouble(opts[1], &x) && common_StrToDouble(opts[2], &y))
+                    if(p_StrToDouble(opts[1], &x) && p_StrToDouble(opts[2], &y))
                     {
                         interop_Calc(p_lscript, x, y, &res);
                         board_CliWriteLine("%g + %g = %g", x, y, res);
@@ -260,7 +268,7 @@ int p_ProcessCommand(const char* sin)
                 {
                     int pin = -1;
 
-                    if(common_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
+                    if(p_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
                     {
                         bool value = opts[2][0] == 't';
                         interop_Hinput(p_lscript, pin, value);
@@ -274,7 +282,7 @@ int p_ProcessCommand(const char* sin)
                 {
                     int pin = -1;
                     bool bval;
-                    if(common_StrToInt(opts[1], &pin))
+                    if(p_StrToInt(opts[1], &pin))
                     {
                         board_ReadDig((unsigned int)pin, &bval);
                         board_CliWriteLine("read pin:%d = %s", pin, bval ? "t" : "f");
@@ -288,7 +296,7 @@ int p_ProcessCommand(const char* sin)
                 {
                     int pin = -1;
 
-                    if(common_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
+                    if(p_StrToInt(opts[1], &pin) && (opts[2][0] == 't' || opts[2][0] == 'f'))
                     {
                         bool value = opts[2][0] == 't';
                         board_WriteDig((unsigned int)pin, value);
@@ -338,7 +346,7 @@ int p_ProcessCommand(const char* sin)
         // usage
         board_CliWriteLine("Invalid cmd:%s ", sin);
         p_Usage();
-        stat = RS_FAIL;
+        stat = 1;
     }
 
     return stat;
@@ -364,4 +372,48 @@ void p_Sleep(int msec)
     ts.tv_sec = msec / 1000;
     ts.tv_nsec = (msec % 1000) * 1000000;
     nanosleep(&ts, NULL);
+}
+
+//--------------------------------------------------------//
+bool p_StrToDouble(const char* str, double* val)
+{
+    bool valid = true;
+    char* p;
+
+    errno = 0;
+    *val = strtof(str, &p);
+    if(errno == ERANGE)
+    {
+        // Mag is too large.
+        valid = false;
+    }
+    else if(p == str)
+    {
+        // Bad string.
+        valid = false;
+    }
+
+    return valid;
+}
+
+//--------------------------------------------------------//
+bool p_StrToInt(const char* str, int* val)
+{
+    bool valid = true;
+    char* p;
+
+    errno = 0;
+    *val = strtol(str, &p, 10);
+    if(errno == ERANGE)
+    {
+        // Mag is too large.
+        valid = false;
+    }
+    else if(p == str)
+    {
+        // Bad string.
+        valid = false;
+    }
+
+    return valid;
 }

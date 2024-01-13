@@ -3,13 +3,36 @@
 #include <string.h>
 
 #include "common.h"
-#include "logger.h"
 #include "board.h"
 #include "interop.h"
 #include "luautils.h"
 
 
 //---------------- Private Declarations ---------------------//
+
+/// Utility to get an int arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+static int p_GetArgInt(lua_State* L, int index, int* ret);
+
+/// Utility to get a double arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+static int p_GetArgDbl(lua_State* L, int index, double* ret);
+
+/// Utility to get a boolean arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+static int p_GetArgBool(lua_State* L, int index, bool* ret);
+
+/// Utility to get a string arg off the Lua stack.
+/// @param L Lua state.
+/// @param index Index of the entry on the Lua stack.
+/// @param[out] ret The value.
+static int p_GetArgStr(lua_State* L, int index, char** ret);
 
 
 //---------------- Public Implementation -----------------//
@@ -33,7 +56,7 @@ void interop_Calc(lua_State* L, double x, double y, double* res) //TODO2 use gen
     PROCESS_LUA_ERROR(L, lstat, "lua_pcall calc() failed");
 
     ///// Get the results from the stack.
-    luautils_GetArgDbl(L, -1, res);
+    p_GetArgDbl(L, -1, res);
 }
 
 //--------------------------------------------------------//
@@ -90,15 +113,15 @@ void interop_Structinator(lua_State* L, my_data_t* din, my_data_t* dout)
     if(lua_istable(L, -1) > 0)
     {
         gtype = lua_getfield(L, -1, "val");
-        lstat = luautils_GetArgInt(L, -1, &dout->val);
+        lstat = p_GetArgInt(L, -1, &dout->val);
         lua_pop(L, 1); // remove field
 
         gtype = lua_getfield(L, -1, "state"); // LUA_TNUMBER
-        lstat = luautils_GetArgInt(L, -1, (int*)&dout->state);
+        lstat = p_GetArgInt(L, -1, (int*)&dout->state);
         lua_pop(L, 1); // remove field
 
         gtype = lua_getfield(L, -1, "text");
-        lstat = luautils_GetArgStr(L, -1, &dout->text);
+        lstat = p_GetArgStr(L, -1, &dout->text);
         lua_pop(L, 1); // remove field
     }
     else
@@ -119,7 +142,7 @@ static int p_CliWr(lua_State* L)
 {
     ///// Get function arguments.
     char* info = NULL;
-    luautils_GetArgStr(L, 1, &info);
+    p_GetArgStr(L, 1, &info);
 
     ///// Do the work.
    board_CliWriteLine(info);
@@ -148,8 +171,8 @@ static int p_DigOut(lua_State* L)
     ///// Get function arguments.
     int pin;
     bool state;
-    luautils_GetArgInt(L, 1, &pin);
-    luautils_GetArgBool(L, 2, &state);
+    p_GetArgInt(L, 1, &pin);
+    p_GetArgBool(L, 2, &state);
 
     ///// Do the work.
     board_WriteDig((unsigned int)pin, state);
@@ -163,7 +186,7 @@ static int p_DigIn(lua_State* L)
 {
     ///// Get function arguments.
     int pin;
-    luautils_GetArgInt(L, 1, &pin);
+    p_GetArgInt(L, 1, &pin);
 
     ///// Do the work.
     bool state;
@@ -174,6 +197,70 @@ static int p_DigIn(lua_State* L)
     return 1; // number of results
 }
 
+//--------------------------------------------------------//
+int p_GetArgStr(lua_State* L, int index, char** ret)//TODO-REF could use gen_interop instead
+{
+    if(lua_isstring(L, index) > 0)
+    {
+        // Need to copy the string because the lua one will be GCed.
+        const char* st = lua_tostring(L, index);
+        *ret = calloc(strlen(st) + 1, 1);
+        strcpy(*ret, st);
+    }
+    else
+    {
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid string argument at index %d", index);
+    }
+
+    return 0;
+}
+
+//--------------------------------------------------------//
+int p_GetArgInt(lua_State* L, int index, int* ret)
+{
+    int valid = 0;
+    if(lua_isnumber(L, index) > 0)
+    {
+        *ret = (int)lua_tointegerx(L, index, &valid);
+    }
+
+    if(valid == 0)
+    {
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid integer argument at index %d", index);
+    }
+
+    return 0;
+}
+
+//--------------------------------------------------------//
+int p_GetArgDbl(lua_State* L, int index, double* ret)
+{
+    if(lua_isnumber(L, index) > 0)
+    {
+        *ret = lua_tonumber(L, index);
+    }
+    else
+    {
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid double argument at index %d", index);
+    }
+
+    return 0;
+}
+
+//--------------------------------------------------------//
+int p_GetArgBool(lua_State* L, int index, bool* ret)
+{
+    if(lua_isboolean(L, index) > 0)
+    {
+        *ret = lua_toboolean(L, index); // always t/f
+    }
+    else
+    {
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid bool argument at index %d", index);
+    }
+
+    return 0;
+}
 
 //---------------- Implementation ------------------------//
 //------------------ Infrastructure ----------------------//

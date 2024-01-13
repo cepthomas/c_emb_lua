@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 #include <sys/time.h>
 
 #include "common.h"
@@ -10,50 +11,29 @@
 
 //---------------- Private --------------------------//
 
-
+#define LOG_LINE_LEN 128
 
 //---------------- Public Implementation -------------//
 
 //--------------------------------------------------------//
-bool common_StrToDouble(const char* str, double* val)
+int common_Log(log_level_t level, const char* format, ...)
 {
-    bool valid = true;
-    char* p;
+    static char buff[LOG_LINE_LEN];
 
-    errno = 0;
-    *val = strtof(str, &p);
-    if(errno == ERANGE)
-    {
-        // Mag is too large.
-        valid = false;
-    }
-    else if(p == str)
-    {
-        // Bad string.
-        valid = false;
-    }
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buff, LOG_LINE_LEN-1, format, args);
+    va_end(args);
 
-    return valid;
-}
-
-//--------------------------------------------------------//
-bool common_StrToInt(const char* str, int* val)
-{
-    bool valid = true;
-    char* p;
-
-    errno = 0;
-    *val = strtol(str, &p, 10);
-    if(errno == ERANGE)
+    const char* slevel = "???";
+    switch(level)
     {
-        // Mag is too large.
-        valid = false;
-    }
-    else if(p == str)
-    {
-        // Bad string.
-        valid = false;
+        case LVL_DEBUG: slevel = "DBG"; break;
+        case LVL_INFO:  slevel = "INF"; break;
+        case LVL_ERROR: slevel = "ERR"; break;
     }
 
-    return valid;
+    printf("%s,%s\n", slevel, buff);
+
+    return 0;
 }

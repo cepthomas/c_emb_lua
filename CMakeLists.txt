@@ -11,20 +11,20 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-deprecated-declarations -Wno-u
 
 
 include_directories(
-    source/c
+    source
+    test
     ${LUA}/include
     )
 
 # Source files.
 add_executable(cemblua_test
-    source/c/main.c
-    source/c/common.c
-    source/c/exec.c
-    source/c/board.c
-    source/c/interop.c
-    source/c/logger.c
-    source/c/luautils.c
-    source/c/luaex.c
+    source/private/luautils.c
+    source/private/luaex.c
+    test/main.c
+    test/exec.c
+    test/board.c
+    test/interop.c
+    test/common.c
     )
 
 # Libs. 64 bit build.

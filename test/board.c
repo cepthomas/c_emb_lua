@@ -5,7 +5,6 @@
 #include <conio.h>
 #include <stdarg.h>
 
-#include "logger.h"
 #include "board.h"
 
 
@@ -29,7 +28,7 @@ static bool p_dig_pins_sim[NUM_DIG_PINS];
 //--------------------------------------------------------//
 int board_Init(void)
 {
-    int stat = RS_PASS;
+    int stat = 0;
 
     memset(p_cli_buff, 0, CLI_BUFF_LEN);
 
@@ -47,7 +46,7 @@ int board_Init(void)
 //--------------------------------------------------------//
 int board_Destroy(void)
 {
-    int stat = RS_PASS;
+    int stat = 0;
     p_enb_interrupts = false;
     return stat;
 }
@@ -55,7 +54,7 @@ int board_Destroy(void)
 //--------------------------------------------------------//
 int board_EnableInterrupts(bool enb)
 {
-    int stat = RS_PASS;
+    int stat = 0;
     p_enb_interrupts = enb;
     return stat;
 }
@@ -63,7 +62,7 @@ int board_EnableInterrupts(bool enb)
 //--------------------------------------------------------//
 int board_RegDigInterrupt(board_DigInterrupt_t fp)
 {
-    int stat = RS_PASS;
+    int stat = 0;
     p_dig_interrupt = fp;
     return stat;
 }
@@ -81,7 +80,7 @@ uint64_t board_GetCurrentUsec(void)
 //--------------------------------------------------------//
 int board_WriteDig(unsigned int pin, bool value)
 {
-    int stat = RS_PASS;
+    int stat = 0;
 
     if(pin < NUM_DIG_PINS)
     {
@@ -89,7 +88,7 @@ int board_WriteDig(unsigned int pin, bool value)
     }
     else
     {
-        stat = RS_ERR;
+        stat = 1;
     }
 
     return stat;
@@ -98,7 +97,7 @@ int board_WriteDig(unsigned int pin, bool value)
 //--------------------------------------------------------//
 int board_ReadDig(unsigned int pin, bool* value)
 {
-    int stat = RS_PASS;
+    int stat = 0;
 
     if(pin < NUM_DIG_PINS)
     {
@@ -106,7 +105,7 @@ int board_ReadDig(unsigned int pin, bool* value)
     }
     else
     {
-        stat = RS_ERR;
+        stat = 1;
     }
 
     return stat;
@@ -117,7 +116,7 @@ int board_CliOpen(unsigned int channel)
 {
     (void)channel;
 
-    int stat = RS_PASS;
+    int stat = 0;
 
     // Prompt.
     board_CliWriteLine("\r\n>");
@@ -128,7 +127,7 @@ int board_CliOpen(unsigned int channel)
 //--------------------------------------------------------//
 int board_CliReadLine(char* buff, unsigned int num)
 {
-    int stat = RS_FAIL;
+    int stat = 1;
 
     // Default.
     buff[0] = 0;
@@ -148,7 +147,7 @@ int board_CliReadLine(char* buff, unsigned int num)
 
                 // Copy to client buff. Should be 0 terminated.
                 strncpy(buff, p_cli_buff, num);
-                stat = RS_PASS;
+                stat = 0;
 
                 // Clear buffer.
                 memset(p_cli_buff, 0, CLI_BUFF_LEN);
@@ -173,7 +172,7 @@ int board_CliReadLine(char* buff, unsigned int num)
 //--------------------------------------------------------//
 int board_CliWriteLine(const char* format, ...)
 {
-    int stat = RS_PASS;
+    int stat = 0;
 
     static char buff[CLI_BUFF_LEN];
 
