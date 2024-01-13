@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "logger.h"
-#include "luautils.h" // TODO1 put in cbot.
+#include "luautils.h"
 
 
 //---------------- Private Declarations ------------------//
