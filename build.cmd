@@ -1,4 +1,6 @@
 
+TODO-REF break into separate lib and test dirs
+
 echo off
 
 :: Setup dirs and files.

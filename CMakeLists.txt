@@ -22,8 +22,9 @@ add_executable(cemblua_test
     source/c/exec.c
     source/c/board.c
     source/c/interop.c
-    source/c/luautils.c
     source/c/logger.c
+    source/c/luautils.c
+    source/c/luaex.c
     )
 
 # Libs. 64 bit build.

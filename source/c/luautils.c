@@ -68,28 +68,7 @@ void luautils_LuaError(lua_State* L, const char* fn, int line, int err, const ch
     logger_Log(LVL_DEBUG, fn, line, format, args);
     va_end(args);
 
-    switch(err)
-    {
-        case LUA_ERRRUN:
-            snprintf(buff, BUFF_LEN-1, "LUA_ERRRUN");
-            break;
-        case LUA_ERRSYNTAX:
-            snprintf(buff, BUFF_LEN-1, "LUA_ERRSYNTAX: syntax error during pre-compilation");
-            break;
-        case LUA_ERRMEM:
-            snprintf(buff, BUFF_LEN-1, "LUA_ERRMEM: memory allocation error");
-            break;
-        case LUA_ERRERR:
-            snprintf(buff, BUFF_LEN-1, "LUA_ERRERR: error while running the error handler function");
-            break;
-        case LUA_ERRFILE:
-            snprintf(buff, BUFF_LEN-1, "LUA_ERRFILE: couldn't open the given file");
-            break;
-        default:
-            snprintf(buff, BUFF_LEN-1, "Unknown error %i (caller:%d)", err, line);
-            break;
-    }
-    logger_Log(LVL_DEBUG, fn, line, "   %s", buff);
+    logger_Log(LVL_DEBUG, fn, line, "   %s", luautils_LuaStatusToString(err));
 
     // Dump trace.
     luaL_traceback(L, L, NULL, 1);
@@ -97,6 +76,24 @@ void luautils_LuaError(lua_State* L, const char* fn, int line, int err, const ch
     logger_Log(LVL_DEBUG, fn, line, "   %s", buff);
 
     lua_error(L); // never returns
+}
+
+//--------------------------------------------------------//
+const char* luautils_LuaStatusToString(int stat)
+{
+    const char* sstat = "UNKNOWN";
+    switch(stat)
+    {
+        case LUA_OK: sstat = "LUA_OK"; break;
+        case LUA_YIELD: sstat = "LUA_YIELD"; break;
+        case LUA_ERRRUN: sstat = "LUA_ERRRUN"; break;
+        case LUA_ERRSYNTAX: sstat = "LUA_ERRSYNTAX"; break; // syntax error during pre-compilation
+        case LUA_ERRMEM: sstat = "LUA_ERRMEM"; break; // memory allocation error
+        case LUA_ERRERR: sstat = "LUA_ERRERR"; break; // error while running the error handler function
+        case LUA_ERRFILE: sstat = "LUA_ERRFILE"; break; // couldn't open the given file
+        default: break; // nothing else for now.
+    }
+    return sstat;
 }
 
 //--------------------------------------------------------//
@@ -140,7 +137,7 @@ int luautils_DumpGlobals(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int luautils_GetArgStr(lua_State* L, int index, char** ret)
+int luautils_GetArgStr(lua_State* L, int index, char** ret)//TODO-REF could use gen_interop instead
 {
     if(lua_isstring(L, index) > 0)
     {

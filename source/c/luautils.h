@@ -2,8 +2,7 @@
 #ifndef LUAUTILS_H
 #define LUAUTILS_H
 
-/// @brief Generic stuff for playing with lua.
-
+#include <stdbool.h>
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
@@ -25,6 +24,11 @@ int luautils_DumpStack(lua_State *L, const char* fn, int line, const char* info)
 /// @param err Specific Lua error.
 /// @param format Standard string stuff.
 void luautils_LuaError(lua_State* L, const char* fn, int err, int line, const char* format, ...);
+
+/// Make a readable string.
+/// @param status Specific Lua status.
+/// @return the string.
+const char* luautils_LuaStatusToString(int err);
 
 /// Dump the table at the top.
 /// @param L Lua state.
