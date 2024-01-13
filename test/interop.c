@@ -16,7 +16,7 @@
 //---------------- Call lua functions from C -------------//
 
 //--------------------------------------------------------//
-void interop_Calc(lua_State* L, double x, double y, double* res)
+void interop_Calc(lua_State* L, double x, double y, double* res) //TODO2 use gen_interop?
 {
     int lstat = LUA_OK;
     
