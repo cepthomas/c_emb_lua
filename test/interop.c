@@ -198,7 +198,7 @@ static int p_DigIn(lua_State* L)
 }
 
 //--------------------------------------------------------//
-int p_GetArgStr(lua_State* L, int index, char** ret)//TODO-REF could use gen_interop instead
+int p_GetArgStr(lua_State* L, int index, char** ret)
 {
     if(lua_isstring(L, index) > 0)
     {
