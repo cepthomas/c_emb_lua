@@ -39,7 +39,7 @@ static int p_GetArgStr(lua_State* L, int index, char** ret);
 //---------------- Call lua functions from C -------------//
 
 //--------------------------------------------------------//
-void interop_Calc(lua_State* L, double x, double y, double* res) //TODO2 use gen_interop?
+void interop_Calc(lua_State* L, double x, double y, double* res) //TODO-B use gen_interop?
 {
     int lstat = LUA_OK;
     

@@ -2,6 +2,6 @@
 echo off
 
 pushd build
-rem TODO2 crashes:
+rem TODO-T crashes:
 cemblua_test demoapp.lua
 popd
