@@ -46,7 +46,9 @@ function do_it()
     -- ut.sleep(200)
 
     -- Plays well with others.
+      tell("555")
     coroutine.yield()
+      tell("666")
   end
   tell("done loop")
 end

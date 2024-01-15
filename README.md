@@ -1,4 +1,5 @@
-# c_emb_lua
+# C Embedded Lua
+
 A minimal example of a C embedded executable with lua script processor.
 It demonstrates:
 - Coroutines - one state for the C side and one for the script side.
@@ -6,6 +7,7 @@ It demonstrates:
 - Calling C functions with args from the script side.
 - Simulated embedded system with a hardware level, CLI for control, and exec loop running everything.
 - Rudimentary error handling model - more required.
+- For conventions see [c_modular](https://github.com/cepthomas/c_modular/blob/master/README.md).
 
 # Build
 - Pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.
@@ -13,20 +15,18 @@ It demonstrates:
 - Run build.cmd to make the executables.
 
 # Files
-- [Conventions](https://github.com/cepthomas/c_bag_of_tricks/blob/master/CONVENTIONS.md).
-- [Modular model](https://github.com/cepthomas/c_modular).
-- `c` folder:
+- `source` folder:
+    - luautils.c/h - General purpose tools for probing lua stacks.
+    - luaex.c/h - Lua API extensions.
+- `test` folder:
     - main.c - Entry stub calls exec.
     - exec.c/h - Does all the top-level work.
     - board.c/h - Interface to the (simulated) hardware.
     - common.c/h - Misc time, strings, ...
     - luainterop.c/h - Interfaces to call lua functions from C and to call C functions from lua.
     - luautils.c/h - General purpose tools for probing lua stacks.
-- `lua` folder:
     - demoapp.lua - Lua script for a simplistic multithreaded coroutine application. Uses luatoc.
     - utils.lua - Used by demoapp.lua.
-- `lua-5.3.5` folder:
-    - lua source code for this application. Stock except where marked by `C_EMB_LUA`.
 
 # Licenses
 [This repo](https://github.com/cepthomas/c-emb-lua/blob/master/LICENSE)

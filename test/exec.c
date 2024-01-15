@@ -152,7 +152,7 @@ int exec_Run(const char* fn)
         // Init the script. This also starts blocking execution.
         p_script_running = true;
 
-        int gtype = lua_getglobal(p_lscript, "do_it");
+        lua_getglobal(p_lscript, "do_it");
         luautils_EvalStack(p_lscript, 1);
 
         ///// First do some yelding. /////

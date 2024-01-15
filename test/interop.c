@@ -44,7 +44,7 @@ void interop_Calc(lua_State* L, double x, double y, double* res) //TODO-B use ge
     int lstat = LUA_OK;
     
     ///// Get the function to be called.
-    int gtype = lua_getglobal(L, "calc");
+    lua_getglobal(L, "calc");
 
     ///// Push the arguments to the call.
     lua_pushnumber(L, x);
@@ -65,7 +65,7 @@ void interop_Hinput(lua_State* L, unsigned int pin, bool value)
     int lstat = LUA_OK;
 
     ///// Get the function to be called.
-    int gtype = lua_getglobal(L, "hinput");
+    lua_getglobal(L, "hinput");
 
     ///// Push the arguments to the call.
     lua_pushinteger(L, pin);
@@ -86,7 +86,7 @@ void interop_Structinator(lua_State* L, my_data_t* din, my_data_t* dout)
     int lstat = LUA_OK;
 
     ///// Get the function to be called.
-    int gtype = lua_getglobal(L, "structinator");
+    lua_getglobal(L, "structinator");
 
     ///// Package the input.
     // Create a new empty table and push it onto the stack.
@@ -112,15 +112,15 @@ void interop_Structinator(lua_State* L, my_data_t* din, my_data_t* dout)
     ///// Get the results from the stack.
     if(lua_istable(L, -1) > 0)
     {
-        gtype = lua_getfield(L, -1, "val");
+        lua_getfield(L, -1, "val");
         lstat = p_GetArgInt(L, -1, &dout->val);
         lua_pop(L, 1); // remove field
 
-        gtype = lua_getfield(L, -1, "state"); // LUA_TNUMBER
+        lua_getfield(L, -1, "state"); // LUA_TNUMBER
         lstat = p_GetArgInt(L, -1, (int*)&dout->state);
         lua_pop(L, 1); // remove field
 
-        gtype = lua_getfield(L, -1, "text");
+        lua_getfield(L, -1, "text");
         lstat = p_GetArgStr(L, -1, &dout->text);
         lua_pop(L, 1); // remove field
     }

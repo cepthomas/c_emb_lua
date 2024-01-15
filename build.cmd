@@ -12,6 +12,3 @@ cmake -G "MinGW Makefiles" ..
 make
 
 popd
-
-:: This really should be done by CMake.
-copy test\*.lua build

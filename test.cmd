@@ -1,7 +1,9 @@
 
 echo off
 
+set LUA_PATH=;;C:\Dev\repos\C\c_emb_lua\test\?.lua;
+
 pushd build
-rem TODO-T crashes:
-cemblua_test demoapp.lua
+cemblua_test ..\test\demoapp.lua
+
 popd
