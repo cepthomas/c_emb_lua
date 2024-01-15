@@ -45,10 +45,8 @@ function do_it()
     end
     -- ut.sleep(200)
 
-    -- Plays well with others.
-      tell("555")
+    -- Plays well with others. TODO2 blows up here... return from lua_resume()
     coroutine.yield()
-      tell("666")
   end
   tell("done loop")
 end

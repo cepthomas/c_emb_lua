@@ -141,7 +141,6 @@ int exec_Run(const char* fn)
     // Priming run of the loaded Lua script to create the script's global variables
     lua_stat = lua_pcall(p_lscript, 0, 0, 0);
     luautils_EvalStack(p_lscript, 0);
-
     if (lua_stat != LUA_OK)
     {
         common_Log(LVL_ERROR, "lua_pcall() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
