@@ -4,15 +4,13 @@
 cmake_minimum_required(VERSION 3.5)
 project(cemblua_test)
 
-# set(CMAKE_C_STANDARD 99)
-# set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 
 # Lua headers.
 set(LUA "C:/Lua")
-
-# needs -g to debug.
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 
 
 include_directories(
@@ -33,4 +31,6 @@ add_executable(cemblua_test
     )
 
 # Libs.
-target_link_libraries(cemblua_test  ${LUA}/Win64/lua54.dll)
+target_link_libraries(cemblua_test
+    ${LUA}/Win64/lua54.dll
+    )

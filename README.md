@@ -11,8 +11,8 @@ It demonstrates:
 
 # Build
 - Pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.
-- A VS Code workspace using mingw and CMake is supplied. Your PATH needs to include mingw.
 - Run build.cmd to make the executables.
+- Test code using mingw and CMake is supplied. Your PATH needs to include mingw64.
 
 # Files
 - `source` folder:
