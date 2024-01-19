@@ -14,15 +14,14 @@ set(LUA "C:/Lua")
 
 
 include_directories(
-    source
     test
     ${LUA}/include
     )
 
 # Source files.
 add_executable(cemblua_test
-    source/private/luautils.c
-    source/private/luaex.c
+    # source/private/luautils.c
+    # source/private/luaex.c
     test/main.c
     test/exec.c
     test/board.c

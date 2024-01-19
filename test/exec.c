@@ -8,7 +8,7 @@
 #include "common.h"
 #include "board.h"
 #include "interop.h"
-#include "luautils.h"
+// #include "luautils.h"
 #include "exec.h"
 
 
@@ -63,6 +63,14 @@ static bool p_StrToDouble(const char* str, double* val);
 /// @param val The output.
 /// @return Valid conversion.
 static bool p_StrToInt(const char* str, int* val);
+
+
+void luautils_EvalStack(lua_State* l, int expected)
+{
+
+}
+
+
 
 
 //---------------- Public Implementation -------------//
