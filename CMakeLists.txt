@@ -20,8 +20,6 @@ include_directories(
 
 # Source files.
 add_executable(cemblua_test
-    # source/private/luautils.c
-    # source/private/luaex.c
     test/main.c
     test/exec.c
     test/board.c

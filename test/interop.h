@@ -2,8 +2,6 @@
 #ifndef LUAINTEROP_H
 #define LUAINTEROP_H
 
-/// @brief App specific stuff for talking with lua.
-
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"

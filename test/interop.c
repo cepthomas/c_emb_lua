@@ -5,7 +5,8 @@
 #include "common.h"
 #include "board.h"
 #include "interop.h"
-#include "luautils.h"
+
+//TODO2 use gen_interop instead - but needs support for structinator/tableex.
 
 
 //---------------- Private Declarations ---------------------//
@@ -36,10 +37,11 @@ static int p_GetArgStr(lua_State* L, int index, char** ret);
 
 
 //---------------- Public Implementation -----------------//
+
 //---------------- Call lua functions from C -------------//
 
 //--------------------------------------------------------//
-void interop_Calc(lua_State* L, double x, double y, double* res) //TODO2 use gen_interop?
+void interop_Calc(lua_State* L, double x, double y, double* res)
 {
     int lstat = LUA_OK;
     
@@ -126,8 +128,8 @@ void interop_Structinator(lua_State* L, my_data_t* din, my_data_t* dout)
     }
     else
     {
-        int index = -1;
-        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid table argument at index %d", index);
+        // int index = -1;
+        PROCESS_LUA_ERROR(L, LUA_ERRRUN, "Invalid table argument at index %d", -1);
     }
 
     // Remove the table.

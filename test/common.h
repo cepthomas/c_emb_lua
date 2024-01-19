@@ -23,4 +23,7 @@ typedef enum
 /// Rudimentary logger to stdout.
 int common_Log(log_level_t level, const char* format, ...);
 
+/// Helper macro to check then handle error. If error, never returns.
+#define PROCESS_LUA_ERROR(L, err, fmt, ...)  if(err >= LUA_ERRRUN) { lua_error(L); }
+
 #endif // COMMON_H
