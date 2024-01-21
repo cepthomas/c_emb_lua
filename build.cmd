@@ -2,7 +2,7 @@
 echo off
 
 :: Setup dirs and files.
-mkdir build
+if not exist build mkdir build
 rem del /F /Q build\*.*
 
 pushd build
