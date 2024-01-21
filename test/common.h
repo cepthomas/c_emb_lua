@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <float.h>
-#include <errno.h>
 #include <math.h>
 
 
