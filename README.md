@@ -10,9 +10,10 @@ It demonstrates:
 - For conventions see [c_modular](https://github.com/cepthomas/c_modular/blob/master/README.md).
 
 # Build
-- Pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.
-- Run build.cmd to make the executables.
-- Test code using mingw and CMake is supplied. Your PATH needs to include mingw64.
+- Application is pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.
+- Test code is Windows 64 bit build using CMake. PATH must include \your\path\mingw64\bin.
+- Run build.cmd to make the executable.
+- Run test.cmd to run the executable.
 
 # Files
 - `source` folder:
