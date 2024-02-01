@@ -162,7 +162,7 @@ int exec_Run(const char* fn)
             switch(lua_stat)
             {
                 case LUA_YIELD:
-                    common_Log(LVL_DEBUG, "===LUA_YIELD.");
+                    LOG_DEBUG("===LUA_YIELD.");
                     break;
 
                 case LUA_OK:

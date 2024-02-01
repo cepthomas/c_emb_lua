@@ -16,7 +16,7 @@
 //---------------- Public Implementation -------------//
 
 //--------------------------------------------------------//
-int common_Log(log_level_t level, const char* format, ...)
+int common_Log(char level, const char* format, ...)
 {
     static char buff[LOG_LINE_LEN];
 
@@ -25,15 +25,7 @@ int common_Log(log_level_t level, const char* format, ...)
     vsnprintf(buff, LOG_LINE_LEN-1, format, args);
     va_end(args);
 
-    const char* slevel = "???";
-    switch(level)
-    {
-        case LVL_DEBUG: slevel = "DBG"; break;
-        case LVL_INFO:  slevel = "INF"; break;
-        case LVL_ERROR: slevel = "ERR"; break;
-    }
-
-    printf("%s,%s\n", slevel, buff);
+    printf("%c %s\n", level, buff);
 
     return 0;
 }
