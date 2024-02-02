@@ -3,7 +3,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(cemblua_test)
 
-# This is a Windows 64 bit build. PATH must include \your\path\mingw64\bin.
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR "Project must be built for 64 bit")
 endif()
