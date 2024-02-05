@@ -28,8 +28,3 @@ It demonstrates:
     - luautils.c/h - General purpose tools for probing lua stacks.
     - demoapp.lua - Lua script for a simplistic multithreaded coroutine application. Uses luatoc.
     - utils.lua - Used by demoapp.lua.
-
-# Licenses
-[This repo](https://github.com/cepthomas/c-emb-lua/blob/master/LICENSE)
-
-[Lua](https://github.com/cepthomas/c-emb-lua/blob/master/LUA-LICENSE)
