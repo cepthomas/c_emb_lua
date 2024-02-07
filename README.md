@@ -1,4 +1,4 @@
-# C Embedded Lua
+# C Embedded Lua TODO1 all wrong
 
 A minimal example of a C embedded executable with lua script processor.
 It demonstrates:
