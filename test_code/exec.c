@@ -144,7 +144,7 @@ int exec_Run(const char* fn)
     p_EvalStack(p_lscript, 0);
     if (lua_stat != LUA_OK)
     {
-        common_Log(LVL_ERROR, "lua_pcall() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
+        common_Log('!', "lua_pcall() error code %i: %s", lua_stat, lua_tostring(p_lscript, -1));
     }
 
     if(lua_stat == LUA_OK)
@@ -162,7 +162,7 @@ int exec_Run(const char* fn)
             switch(lua_stat)
             {
                 case LUA_YIELD:
-                    LOG_DEBUG("===LUA_YIELD.");
+                    common_Log('-', "LUA_YIELD.");
                     break;
 
                 case LUA_OK:

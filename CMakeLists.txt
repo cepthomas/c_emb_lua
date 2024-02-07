@@ -17,17 +17,17 @@ set(LUA "C:/Lua")
 
 
 include_directories(
-    test
+    test_code
     ${LUA}/include
     )
 
 # Source files.
 add_executable(cemblua_test
-    test/main.c
-    test/exec.c
-    test/board.c
-    test/interop.c
-    test/common.c
+    test_code/main.c
+    test_code/exec.c
+    test_code/board.c
+    test_code/interop.c
+    test_code/common.c
     )
 
 # Libs.

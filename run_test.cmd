@@ -3,7 +3,7 @@ echo off
 
 set LUA_PATH=;;C:\Dev\repos\C\c_emb_lua\test\?.lua;
 
-pushd build
-cemblua_test ..\test\demoapp.lua
+pushd build_test
+cemblua_test ..\test_code\demoapp.lua
 
 popd
