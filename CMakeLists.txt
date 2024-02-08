@@ -1,10 +1,9 @@
-# Build the module with its unit tests.
 
 cmake_minimum_required(VERSION 3.5)
-project(cemblua_test)
+project(cemblua)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-    message(FATAL_ERROR "Project must be built for 64 bit")
+    message(FATAL_ERROR "Project is 64 bit")
 endif()
 
 set(CMAKE_C_STANDARD 99)
@@ -17,20 +16,20 @@ set(LUA "C:/Lua")
 
 
 include_directories(
-    test_code
+    source_code
     ${LUA}/include
     )
 
 # Source files.
-add_executable(cemblua_test
-    test_code/main.c
-    test_code/exec.c
-    test_code/board.c
-    test_code/interop.c
-    test_code/common.c
+add_executable(cemblua
+    source_code/main.c
+    source_code/exec.c
+    source_code/board.c
+    source_code/interop.c
+    source_code/common.c
     )
 
 # Libs.
-target_link_libraries(cemblua_test
+target_link_libraries(cemblua
     ${LUA}/Win64/lua54.dll
     )

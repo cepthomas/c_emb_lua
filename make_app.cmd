@@ -2,10 +2,9 @@
 echo off
 
 :: Setup dirs and files.
-if not exist build_test mkdir build_test
-rem del /F /Q build_test\*.*
+if not exist build_app mkdir build_app
 
-pushd build_test
+pushd build_app
 
 :: Build the app.
 cmake -G "MinGW Makefiles" ..
