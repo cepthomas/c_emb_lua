@@ -11,7 +11,7 @@ It demonstrates:
 
 # Build
 - Application is pure C99 which should compile anywhere, including small embedded systems - basically anywhere you can compile lua.
-- TODO1 Test code is Windows 64 bit build using CMake. PATH must include \your\path\mingw64\bin.
+- Test code is Windows 64 bit build using CMake. Your PATH must include `...\mingw64\bin`.
 
 # Files
 - make_test.cmd builds the executable.
