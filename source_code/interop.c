@@ -6,7 +6,7 @@
 #include "board.h"
 #include "interop.h"
 
-// TODO3 use gen_interop instead - but needs support for structinator/tableex.
+// TODO3 use gen_interop instead (or ffi?) - but needs support for structinator/tableex.
 
 
 //---------------- Private Declarations ---------------------//
