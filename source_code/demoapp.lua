@@ -7,8 +7,6 @@ local li = require "luainterop" -- C module
 local ut = require "utils"
 local math = require "math"
 
--- print("*** script 1")
-
 -- This is the same as the C type.
 state_type = {
   [1] = 'ST_READY',       -- Ready to be scheduled
@@ -25,8 +23,6 @@ end
 
 function do_it()
   tell("module initialization")
-
-  -- for n in pairs(_G) do print(n) end
 
   -- Process the data passed from C. my_static_data contains the equivalent of my_static_data_t.
   slog = string.format ("script_string:%s script_int:%s", script_string, script_int)
