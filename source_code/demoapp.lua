@@ -41,7 +41,7 @@ function do_it()
     end
     -- ut.sleep(200)
 
-    -- Plays well with others. TODO3 blows up here... return from lua_resume()
+    -- Plays well with others. TODO3 bug: blows up here... return from lua_resume()
     coroutine.yield()
   end
   tell("done loop")
